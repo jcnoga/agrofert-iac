@@ -1,158 +1,116 @@
-/**
- * app.js - Versão Corrigida e Simplificada
- */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-    getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- CONFIGURAÇÃO FIREBASE (COLOQUE SUAS CHAVES AQUI NOVAMENTE) ---
-
+// --- COLE SUAS CHAVES AQUI ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDGd2QBLfYTyAtSwaqsJci-sy9stmb1TGQ",
-  authDomain: "agrofert-2a6e3.firebaseapp.com",
-  projectId: "agrofert-2a6e3",
-  storageBucket: "agrofert-2a6e3.firebasestorage.app",
-  messagingSenderId: "776623089218",
-  appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_APP.firebaseapp.com",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_APP.appspot.com",
+    messagingSenderId: "123",
+    appId: "1:123:web:123"
 };
 
-
-// Inicializa o Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
 const app = {
-    data: {
-        amostras: [], agronomos: [], culturas: [], tecnologias: [], quimicos: []
-    },
+    data: { amostras: [], agronomos: [], culturas: [], tecnologias: [], quimicos: [] },
     
-    // --- INICIALIZAÇÃO ---
     init: async function() {
-        console.log("Iniciando sistema...");
-        await this.loadAllData(); // Carrega tudo do Firebase
-        this.setupEventListeners(); // Ativa os botões de salvar
-        this.renderAllTables(); // Desenha as tabelas
-        this.populateSelects(); // Preenche os selects
+        console.log("App iniciado.");
+        await this.loadAllData();
+        this.setupEventListeners();
+        this.renderAllTables();
+        this.populateSelects();
         this.updateDashboard();
     },
 
-    // --- CARREGAMENTO DE DADOS ---
     loadAllData: async function() {
         try {
-            const collections = ['amostras', 'agronomos', 'culturas', 'tecnologias', 'quimicos'];
-            
-            for (const colName of collections) {
-                const snapshot = await getDocs(collection(db, colName));
-                // Mapeia os documentos convertendo para array e guardando o ID
-                this.data[colName] = snapshot.docs.map(doc => ({
-                    id: doc.id, 
-                    ...doc.data()
-                }));
+            const cols = ['amostras', 'agronomos', 'culturas', 'tecnologias', 'quimicos'];
+            for (const c of cols) {
+                const snap = await getDocs(collection(db, c));
+                this.data[c] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             }
-            console.log("Dados carregados:", this.data);
-        } catch (error) {
-            console.error("Erro ao carregar dados:", error);
-            alert("Erro ao conectar no Firebase. Verifique o console (F12) e suas chaves.");
+        } catch (e) {
+            console.error("Erro Firebase:", e);
+            alert("Erro de conexão com Firebase. Verifique console.");
         }
     },
 
-    // --- SALVAMENTO GERAL (Função Helper) ---
-    saveToFirebase: async function(colName, data, id = null) {
+    saveToFirebase: async function(colName, data, id) {
         try {
             if(id) {
-                // Edição
                 await updateDoc(doc(db, colName, id), data);
-                alert("Registro atualizado com sucesso!");
+                alert("Atualizado!");
             } else {
-                // Inclusão
                 await addDoc(collection(db, colName), data);
-                alert("Registro cadastrado com sucesso!");
+                alert("Salvo!");
             }
-            
-            // Recarrega tudo para atualizar a tela
             await this.loadAllData();
             this.renderAllTables();
             this.populateSelects();
             this.updateDashboard();
-            return true; // Sucesso
-        } catch (error) {
-            console.error("Erro ao salvar:", error);
-            alert("Erro ao salvar no banco de dados.");
+            return true;
+        } catch (e) {
+            console.error(e);
+            alert("Erro ao salvar: " + e.message);
             return false;
         }
     },
 
-    // --- EXCLUSÃO ---
     deleteData: async function(colName, id) {
-        if(!confirm("Tem certeza que deseja excluir?")) return;
-        try {
+        if(confirm("Excluir?")) {
             await deleteDoc(doc(db, colName, id));
             await this.loadAllData();
             this.renderAllTables();
-            this.populateSelects();
             this.updateDashboard();
-        } catch (error) {
-            console.error("Erro ao excluir:", error);
-            alert("Erro ao excluir registro.");
         }
     },
 
-    // --- FUNÇÕES ESPECÍFICAS DE SALVAMENTO (UMA PARA CADA FORMULÁRIO) ---
-    
-    salvarAgronomo: async function() {
+    // --- SALVAR ESPECÍFICOS ---
+    salvarAgronomo: function() {
         const id = document.getElementById('idAgronomo').value;
-        const dados = {
+        const data = {
             nome: document.getElementById('nomeAgronomo').value,
             crea: document.getElementById('creaAgronomo').value
         };
-        if(await this.saveToFirebase('agronomos', dados, id)) {
-            this.limparForm('agronomoForm', 'idAgronomo');
-        }
+        this.saveToFirebase('agronomos', data, id).then(ok => { if(ok) this.limparForm('agronomoForm', 'idAgronomo'); });
     },
 
-    salvarCultura: async function() {
+    salvarCultura: function() {
         const id = document.getElementById('idCultura').value;
-        const dados = {
+        const data = {
             nome: document.getElementById('nomeCultura').value,
             tipo: document.getElementById('tipoCultura').value,
             producao: document.getElementById('prodCultura').value
         };
-        if(await this.saveToFirebase('culturas', dados, id)) {
-            this.limparForm('culturaForm', 'idCultura');
-        }
+        this.saveToFirebase('culturas', data, id).then(ok => { if(ok) this.limparForm('culturaForm', 'idCultura'); });
     },
 
-    salvarTecnologia: async function() {
+    salvarTecnologia: function() {
         const id = document.getElementById('idTec').value;
-        const dados = {
+        const data = {
             nome: document.getElementById('nomeTec').value,
             regiao: document.getElementById('regiaoTec').value
         };
-        if(await this.saveToFirebase('tecnologias', dados, id)) {
-            this.limparForm('tecForm', 'idTec');
-        }
+        this.saveToFirebase('tecnologias', data, id).then(ok => { if(ok) this.limparForm('tecForm', 'idTec'); });
     },
 
-    salvarQuimico: async function() {
+    salvarQuimico: function() {
         const id = document.getElementById('idQuimico').value;
-        const dados = {
+        const data = {
             sigla: document.getElementById('siglaQuimico').value,
             nome: document.getElementById('nomeQuimico').value,
             unidade: document.getElementById('unidadeQuimico').value
         };
-        if(await this.saveToFirebase('quimicos', dados, id)) {
-            this.limparForm('quimicoForm', 'idQuimico');
-        }
+        this.saveToFirebase('quimicos', data, id).then(ok => { if(ok) this.limparForm('quimicoForm', 'idQuimico'); });
     },
 
-    salvarAmostra: async function() {
+    salvarAmostra: function() {
         const id = document.getElementById('idAmostra').value;
-        const form = document.getElementById('amostraForm');
-        
-        // Pega todos os valores explicitamente
-        const dados = {
+        const data = {
             produtor: document.getElementById('samp_produtor').value,
             propriedade: document.getElementById('samp_propriedade').value,
             cidade: document.getElementById('samp_cidade').value,
@@ -163,8 +121,6 @@ const app = {
             cultura: document.getElementById('samp_cultura').value,
             producao: parseFloat(document.getElementById('samp_producao').value) || 0,
             espacamento: document.getElementById('samp_espacamento').value,
-            
-            // Química e Física (convertendo para número)
             ph: parseFloat(document.getElementById('samp_ph').value) || 0,
             mo: parseFloat(document.getElementById('samp_mo').value) || 0,
             p: parseFloat(document.getElementById('samp_p').value) || 0,
@@ -183,86 +139,54 @@ const app = {
             fe: parseFloat(document.getElementById('samp_fe').value) || 0,
             mo_micro: parseFloat(document.getElementById('samp_mo_micro').value) || 0
         };
-
-        if(await this.saveToFirebase('amostras', dados, id)) {
-            this.limparForm('amostraForm', 'idAmostra');
-        }
+        this.saveToFirebase('amostras', data, id).then(ok => { if(ok) this.limparForm('amostraForm', 'idAmostra'); });
     },
 
-    // --- EVENT LISTENERS (Ligando os botões) ---
+    // --- LISTENERS ---
     setupEventListeners: function() {
-        document.getElementById('agronomoForm')?.addEventListener('submit', (e) => { e.preventDefault(); this.salvarAgronomo(); });
-        document.getElementById('culturaForm')?.addEventListener('submit', (e) => { e.preventDefault(); this.salvarCultura(); });
-        document.getElementById('tecForm')?.addEventListener('submit', (e) => { e.preventDefault(); this.salvarTecnologia(); });
-        document.getElementById('quimicoForm')?.addEventListener('submit', (e) => { e.preventDefault(); this.salvarQuimico(); });
-        document.getElementById('amostraForm')?.addEventListener('submit', (e) => { e.preventDefault(); this.salvarAmostra(); });
+        document.getElementById('agronomoForm').addEventListener('submit', (e) => { e.preventDefault(); this.salvarAgronomo(); });
+        document.getElementById('culturaForm').addEventListener('submit', (e) => { e.preventDefault(); this.salvarCultura(); });
+        document.getElementById('tecForm').addEventListener('submit', (e) => { e.preventDefault(); this.salvarTecnologia(); });
+        document.getElementById('quimicoForm').addEventListener('submit', (e) => { e.preventDefault(); this.salvarQuimico(); });
+        document.getElementById('amostraForm').addEventListener('submit', (e) => { e.preventDefault(); this.salvarAmostra(); });
     },
 
-    // --- RENDERIZAÇÃO DAS TABELAS ---
+    // --- TABELAS ---
     renderAllTables: function() {
-        // Amostras
-        this.renderTable('listaCorpoAmostra', this.data.amostras, (item) => `
-            <td><small>${item.protocolo || '-'}</small><br><strong>${item.talhao}</strong></td>
-            <td>${item.produtor}</td>
-            <td>${item.cultura}</td>
-            <td>
-                <button class="btn-rec" onclick="app.gerarRecomendacao('${item.id}')">Relat.</button>
-                <button class="btn-action btn-cancel" onclick="app.editarItem('amostras', '${item.id}')">✎</button>
-                <button class="btn-action btn-cancel" onclick="app.deleteData('amostras', '${item.id}')">🗑️</button>
-            </td>
+        this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
+            <td>${i.produtor}</td><td>${i.talhao}</td><td>${i.cultura}</td>
+            <td><button onclick="app.gerarRecomendacao('${i.id}')">Relat.</button> <button onclick="app.editarItem('amostras','${i.id}')">✎</button> <button onclick="app.deleteData('amostras','${i.id}')">🗑️</button></td>
         `);
-
-        // Agrônomos
-        this.renderTable('listaCorpoAgro', this.data.agronomos, (item) => `
-            <td>${item.nome}</td><td>${item.crea}</td>
-            <td><button class="btn-action btn-cancel" onclick="app.editarItem('agronomos', '${item.id}')">✎</button>
-                <button class="btn-action btn-cancel" onclick="app.deleteData('agronomos', '${item.id}')">🗑️</button></td>
+        this.renderTable('listaCorpoAgro', this.data.agronomos, i => `
+            <td>${i.nome}</td><td>${i.crea}</td><td><button onclick="app.editarItem('agronomos','${i.id}')">✎</button> <button onclick="app.deleteData('agronomos','${i.id}')">🗑️</button></td>
         `);
-
-        // Culturas
-        this.renderTable('listaCorpoCultura', this.data.culturas, (item) => `
-            <td>${item.nome}</td><td>${item.tipo}</td>
-            <td><button class="btn-action btn-cancel" onclick="app.editarItem('culturas', '${item.id}')">✎</button>
-                <button class="btn-action btn-cancel" onclick="app.deleteData('culturas', '${item.id}')">🗑️</button></td>
+        this.renderTable('listaCorpoCultura', this.data.culturas, i => `
+            <td>${i.nome}</td><td>${i.tipo}</td><td><button onclick="app.editarItem('culturas','${i.id}')">✎</button> <button onclick="app.deleteData('culturas','${i.id}')">🗑️</button></td>
         `);
-
-        // Tecnologias
-        this.renderTable('listaCorpoTec', this.data.tecnologias, (item) => `
-            <td>${item.nome}</td><td>${item.regiao}</td>
-            <td><button class="btn-action btn-cancel" onclick="app.editarItem('tecnologias', '${item.id}')">✎</button>
-                <button class="btn-action btn-cancel" onclick="app.deleteData('tecnologias', '${item.id}')">🗑️</button></td>
+        this.renderTable('listaCorpoTec', this.data.tecnologias, i => `
+            <td>${i.nome}</td><td>${i.regiao}</td><td><button onclick="app.editarItem('tecnologias','${i.id}')">✎</button> <button onclick="app.deleteData('tecnologias','${i.id}')">🗑️</button></td>
         `);
-
-        // Químicos
-        this.renderTable('listaCorpoQuimico', this.data.quimicos, (item) => `
-            <td>${item.sigla}</td><td>${item.nome}</td>
-            <td><button class="btn-action btn-cancel" onclick="app.editarItem('quimicos', '${item.id}')">✎</button>
-                <button class="btn-action btn-cancel" onclick="app.deleteData('quimicos', '${item.id}')">🗑️</button></td>
+        this.renderTable('listaCorpoQuimico', this.data.quimicos, i => `
+            <td>${i.sigla}</td><td>${i.nome}</td><td><button onclick="app.editarItem('quimicos','${i.id}')">✎</button> <button onclick="app.deleteData('quimicos','${i.id}')">🗑️</button></td>
         `);
     },
 
-    renderTable: function(tbodyId, dataArray, rowHtmlFunc) {
-        const tbody = document.getElementById(tbodyId);
-        if(!tbody) return;
-        tbody.innerHTML = '';
-        if(dataArray.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhum registro encontrado.</td></tr>';
-            return;
-        }
-        dataArray.forEach(item => {
+    renderTable: function(tbodyId, list, htmlCallback) {
+        const tb = document.getElementById(tbodyId);
+        tb.innerHTML = '';
+        list.forEach(item => {
             const tr = document.createElement('tr');
-            tr.innerHTML = rowHtmlFunc(item);
-            tbody.appendChild(tr);
+            tr.innerHTML = htmlCallback(item);
+            tb.appendChild(tr);
         });
     },
 
-    // --- EDIÇÃO (Preencher formulário) ---
-    editarItem: function(colName, id) {
-        const item = this.data[colName].find(i => i.id === id);
+    // --- EDIÇÃO E UTILITÁRIOS ---
+    editarItem: function(col, id) {
+        const item = this.data[col].find(i => i.id === id);
         if(!item) return;
 
-        // Redireciona para a aba correta e preenche
-        if(colName === 'amostras') {
+        if(col === 'amostras') {
             this.navigateTo('amostras');
             document.getElementById('idAmostra').value = id;
             document.getElementById('samp_produtor').value = item.produtor;
@@ -274,6 +198,7 @@ const app = {
             document.getElementById('samp_data').value = item.data;
             document.getElementById('samp_cultura').value = item.cultura;
             document.getElementById('samp_producao').value = item.producao;
+            document.getElementById('samp_espacamento').value = item.espacamento;
             document.getElementById('samp_ph').value = item.ph;
             document.getElementById('samp_mo').value = item.mo;
             document.getElementById('samp_p').value = item.p;
@@ -283,40 +208,37 @@ const app = {
             document.getElementById('samp_hal').value = item.hal;
             document.getElementById('samp_al').value = item.al;
             document.getElementById('samp_argila').value = item.argila;
-            // (Adicione os outros campos se necessário, mas estes são os principais para o teste)
-        } else if (colName === 'agronomos') {
+        } else if (col === 'agronomos') {
             this.navigateTo('agronomos');
             document.getElementById('idAgronomo').value = id;
             document.getElementById('nomeAgronomo').value = item.nome;
             document.getElementById('creaAgronomo').value = item.crea;
-        } else if (colName === 'culturas') {
+        } else if (col === 'culturas') {
             this.navigateTo('culturas');
             document.getElementById('idCultura').value = id;
             document.getElementById('nomeCultura').value = item.nome;
             document.getElementById('tipoCultura').value = item.tipo;
             document.getElementById('prodCultura').value = item.producao;
         }
+        // ... repita para tecnologias e quimicos se necessário
     },
 
-    // --- OUTROS ---
-    limparForm: function(formId, idFieldId) {
+    limparForm: function(formId, idId) {
         document.getElementById(formId).reset();
-        document.getElementById(idFieldId).value = '';
+        document.getElementById(idId).value = '';
     },
 
     navigateTo: function(viewId) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.add('active');
-        if(viewId === 'amostras') {
-            this.populateSelects();
-        }
+        document.getElementById(`nav-${viewId}`).classList.add('active');
+        if(viewId === 'amostras') this.populateSelects();
     },
 
     populateSelects: function() {
         const selAgro = document.getElementById('samp_agro');
         const selCult = document.getElementById('samp_cultura');
-        
         if(selAgro && this.data.agronomos) {
             selAgro.innerHTML = '<option value="">Selecione...</option>' + 
                 this.data.agronomos.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
@@ -326,50 +248,45 @@ const app = {
                 this.data.culturas.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
         }
     },
-
+    
     preencherTeste: function() {
         document.getElementById('samp_produtor').value = "Produtor Teste";
-        document.getElementById('samp_propriedade').value = "Gleba X";
-        document.getElementById('samp_cidade').value = "Cidade Teste";
-        document.getElementById('samp_talhao').value = "T-01";
+        document.getElementById('samp_propriedade').value = "Fazenda X";
+        document.getElementById('samp_cidade').value = "Cidade Y";
+        document.getElementById('samp_talhao').value = "T1";
         document.getElementById('samp_data').valueAsDate = new Date();
         document.getElementById('samp_producao').value = "10";
-        document.getElementById('samp_ph').value = 5.0;
-        document.getElementById('samp_mo').value = 25;
-        document.getElementById('samp_p').value = 12;
+        document.getElementById('samp_ph').value = 5.5;
+        document.getElementById('samp_mo').value = 30;
+        document.getElementById('samp_p').value = 15;
         document.getElementById('samp_k').value = 0.2;
-        document.getElementById('samp_ca').value = 2.0;
-        document.getElementById('samp_mg').value = 0.8;
-        document.getElementById('samp_hal').value = 3.5;
-        document.getElementById('samp_al').value = 0.2;
-        document.getElementById('samp_argila').value = 30;
+        document.getElementById('samp_ca').value = 3.0;
+        document.getElementById('samp_mg').value = 1.0;
+        document.getElementById('samp_hal').value = 3.0;
+        document.getElementById('samp_argila').value = 40;
     },
 
     updateDashboard: function() {
         if(document.getElementById('dashTotalAmostras')) document.getElementById('dashTotalAmostras').textContent = this.data.amostras.length;
-        if(document.getElementById('dashTotalCulturas')) document.getElementById('dashTotalCulturas').textContent = this.data.culturas.length;
         if(document.getElementById('dashTotalAgronomos')) document.getElementById('dashTotalAgronomos').textContent = this.data.agronomos.length;
+        if(document.getElementById('dashTotalCulturas')) document.getElementById('dashTotalCulturas').textContent = this.data.culturas.length;
     },
 
-    // --- RECOMENDAÇÃO (Código simplificado para manter o foco no cadastro) ---
     gerarRecomendacao: function(id) {
         const amostra = this.data.amostras.find(a => a.id === id);
         if(!amostra) return;
-        document.getElementById('conteudoRecomendacao').innerHTML = `<h2>Relatório</h2><p>Amostra ID: ${id}</p><p>Produtor: ${amostra.produtor}</p><p>Em breve lógica de cálculo.</p>`;
+        document.getElementById('conteudoRecomendacao').innerHTML = `<h2>Relatório</h2><p>Amostra: ${amostra.talhao}</p>`;
         document.getElementById('modalRecomendacao').style.display = 'block';
     },
 
-    fecharModal: function() {
-        document.getElementById('modalRecomendacao').style.display = 'none';
-    },
-
+    fecharModal: function() { document.getElementById('modalRecomendacao').style.display = 'none'; },
+    
     atualizarDetalhesCultura: function() {
-        // Opção para futura implementação de preenchimento automático
+        const nome = document.getElementById('samp_cultura').value;
+        const item = this.data.culturas.find(c => c.nome === nome);
+        if(item) document.getElementById('samp_producao').value = item.producao || '';
     }
 };
 
 window.app = app;
-
-document.addEventListener('DOMContentLoaded', () => {
-    app.init();
-});
+document.addEventListener('DOMContentLoaded', () => app.init());
