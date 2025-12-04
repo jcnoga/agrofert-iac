@@ -422,89 +422,128 @@ preencherTeste: function() {
 
 // --- SUBSTITUA ESTA FUNÇÃO NO SEU APP.JS ---
 
+// --- ATUALIZE ESTA FUNÇÃO NO SEU APP.JS ---
+
 gerarRecomendacao: function(id) {
     const a = this.data.amostras.find(i => i.id === id);
     if(!a) return;
 
-    // 1. Helpers para limpar o código
+    // --- 1. PREPARAÇÃO DOS DADOS ---
     const val = (v) => parseFloat(v) || 0;
     const fmt = (v) => val(v).toFixed(2);
-    
-    // 2. Cálculos Agronômicos (Básicos)
-    const SB = val(a.ca) + val(a.mg) + val(a.k);
+    const fmt1 = (v) => val(v).toFixed(1); // Para P, S e MO
+    const fmt3 = (v) => val(v).toFixed(3); // Para Molibdênio
+
+    // Cálculos Químicos
+    const SB  = val(a.ca) + val(a.mg) + val(a.k);
     const CTC = SB + val(a.hal);
-    const V = CTC > 0 ? ((SB / CTC) * 100) : 0;
+    const V   = CTC > 0 ? ((SB / CTC) * 100) : 0;
+    
+    // Cálculo de Saturação por Alumínio (m%)
+    const somaBasesAl = SB + val(a.al);
+    const m = somaBasesAl > 0 ? (val(a.al) / somaBasesAl) * 100 : 0;
 
-    // 3. HTML Compacto com Grid
-    // Usamos 'display: grid' para colocar 3 ou 4 itens por linha
+    // Cálculo Físico (Silte é o que sobra)
+    const argila = Math.floor(val(a.argila));
+    const areia = Math.floor(val(a.areia));
+    const silte = 100 - argila - areia;
+
+    // --- 2. GERAÇÃO DO HTML ---
     const html = `
-        <div style="font-family: sans-serif; color: #333;">
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; line-height: 1.4;">
             
-            <!-- CABEÇALHO COMPACTO -->
-            <div style="border-bottom: 2px solid #2e7d32; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 style="margin: 0; color: #2e7d32;">Relatório de Análise</h2>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 5px;">
-                    <span><strong>Produtor:</strong> ${a.produtor}</span>
-                    <span><strong>Data:</strong> ${a.data.split('-').reverse().join('/')}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
-                    <span><strong>Talhão:</strong> ${a.talhao}</span>
-                    <span><strong>Cultura:</strong> ${a.cultura}</span>
+            <!-- CABEÇALHO -->
+            <div style="background: #e8f5e9; padding: 10px; border-radius: 6px; border-left: 5px solid #2e7d32; margin-bottom: 10px;">
+                <h2 style="margin: 0; color: #1b5e20; font-size: 1.4rem;">Relatório de Análise de Solo</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem; margin-top: 8px;">
+                    <div><strong>Produtor:</strong> ${a.produtor}</div>
+                    <div><strong>Propriedade:</strong> ${a.propriedade || '-'}</div>
+                    <div><strong>Município:</strong> ${a.cidade || '-'}</div>
+                    <div><strong>Resp. Técnico:</strong> ${a.agro || '-'}</div>
                 </div>
             </div>
 
-            <!-- GRID DE RESULTADOS (4 Colunas por linha) -->
-            <h4 style="margin: 0 0 5px 0; background: #eee; padding: 5px;">Química do Solo</h4>
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 0.85rem; text-align: center; margin-bottom: 15px;">
+            <!-- IDENTIFICAÇÃO E CULTURA -->
+            <div style="font-size: 0.8rem; margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px;">
+                <strong style="color: #2e7d32;">IDENTIFICAÇÃO:</strong>
+                <span style="margin-right: 15px;">Prot: <b>${a.protocolo || '-'}</b></span>
+                <span style="margin-right: 15px;">Talhão: <b>${a.talhao}</b></span>
+                <span style="margin-right: 15px;">Data: <b>${a.data ? a.data.split('-').reverse().join('/') : '-'}</b></span>
+                <br>
+                <strong style="color: #2e7d32;">CULTURA:</strong>
+                <span style="margin-right: 10px;">${a.cultura}</span>
+                <span style="margin-right: 10px;">Prod: <b>${fmt(a.producao)} t/ha</b></span>
+                <span>Espaçamento: <b>${fmt(a.esp_linha)}m x ${fmt(a.esp_cova)}m</b></span>
+            </div>
+
+            <!-- BLOCO 1: MACRONUTRIENTES E CÁLCULOS -->
+            <h4 style="margin: 0 0 5px 0; background: #eee; padding: 4px 8px; font-size: 0.9rem; border-radius: 4px;">1. Química do Solo (Macro + Bases)</h4>
+            
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; font-size: 0.8rem; text-align: center; margin-bottom: 10px;">
+                <!-- Linha 1 -->
+                <div class="box-res"><strong>pH (H₂O)</strong><br>${fmt(a.ph)}</div>
+                <div class="box-res"><strong>M.O.</strong><br>${fmt1(a.mo)}%</div>
+                <div class="box-res"><strong>P (Resina)</strong><br>${fmt1(a.p)} <small>mg</small></div>
+                <div class="box-res"><strong>S</strong><br>${fmt1(a.s)} <small>mg</small></div>
+                <div class="box-res" style="background: #e3f2fd;"><strong>CTC</strong><br>${fmt(CTC)}</div>
+
+                <!-- Linha 2 -->
+                <div class="box-res"><strong>Ca</strong><br>${fmt(a.ca)}</div>
+                <div class="box-res"><strong>Mg</strong><br>${fmt(a.mg)}</div>
+                <div class="box-res"><strong>K</strong><br>${fmt(a.k)}</div>
+                <div class="box-res" style="background: #fff3e0;"><strong>H+Al</strong><br>${fmt(a.hal)}</div>
+                <div class="box-res" style="background: #e8f5e9;"><strong>SB</strong><br>${fmt(SB)}</div>
+            </div>
+
+            <!-- ÍNDICES DE SATURAÇÃO (IMPORTANTE) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.85rem; text-align: center; margin-bottom: 15px;">
+                <div style="padding: 6px; border-radius: 4px; background: ${V < 50 ? '#ffcdd2' : '#c8e6c9'}; border: 1px solid #ddd;">
+                    <strong>Saturação por Bases (V%):</strong> <span style="font-size:1.1em">${fmt(V)}%</span>
+                </div>
+                <div style="padding: 6px; border-radius: 4px; background: ${m > 20 ? '#ffccbc' : '#f5f5f5'}; border: 1px solid #ddd;">
+                    <strong>Sat. Alumínio (m%):</strong> 
+                    <span style="font-size:1.1em">${fmt(m)}%</span> 
+                    <small>(${val(a.al).toFixed(2)} cmolc)</small>
+                </div>
+            </div>
+
+            <!-- BLOCO 2: MICRONUTRIENTES E FÍSICA -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
                 
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>pH</strong><br>${fmt(a.ph)}
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>M.O.</strong><br>${fmt(a.mo)}%
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>P (mg)</strong><br>${val(a.p).toFixed(1)}
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>S (mg)</strong><br>${val(a.s).toFixed(1)}
+                <!-- Coluna da Esquerda: Micros -->
+                <div>
+                    <h4 style="margin: 0 0 5px 0; background: #eee; padding: 4px 8px; font-size: 0.9rem; border-radius: 4px;">2. Micronutrientes (mg/dm³)</h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; font-size: 0.8rem; text-align: center;">
+                        <div class="box-res"><strong>Zn</strong><br>${fmt(a.zn)}</div>
+                        <div class="box-res"><strong>B</strong><br>${fmt(a.b)}</div>
+                        <div class="box-res"><strong>Mn</strong><br>${fmt(a.mn)}</div>
+                        <div class="box-res"><strong>Cu</strong><br>${fmt(a.cu)}</div>
+                        <div class="box-res"><strong>Fe</strong><br>${fmt(a.fe)}</div>
+                        <div class="box-res"><strong>Mo</strong><br>${fmt3(a.mo_micro)}</div>
+                    </div>
                 </div>
 
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>Ca</strong><br>${fmt(a.ca)}
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>Mg</strong><br>${fmt(a.mg)}
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
-                    <strong>K</strong><br>${fmt(a.k)}
-                </div>
-                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px; background: #fff3e0;">
-                    <strong>Al</strong><br>${fmt(a.al)}
+                <!-- Coluna da Direita: Física -->
+                <div>
+                    <h4 style="margin: 0 0 5px 0; background: #eee; padding: 4px 8px; font-size: 0.9rem; border-radius: 4px;">3. Textura (%)</h4>
+                    <div style="font-size: 0.85rem; padding: 5px; border: 1px solid #eee; border-radius: 4px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Argila:</span> <strong>${argila}%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Areia:</span> <strong>${areia}%</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; color: #777;">
+                            <span>Silte:</span> <span>${silte}%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- GRID DE CÁLCULOS (3 Colunas por linha) -->
-            <h4 style="margin: 0 0 5px 0; background: #eee; padding: 5px;">Índices Calculados</h4>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.9rem; text-align: center;">
-                
-                <div style="background: #e8f5e9; padding: 8px; border-radius: 4px;">
-                    <strong>Soma Bases (SB)</strong><br>${fmt(SB)}
-                </div>
-                <div style="background: #e8f5e9; padding: 8px; border-radius: 4px;">
-                    <strong>CTC Total</strong><br>${fmt(CTC)}
-                </div>
-                <div style="background: ${V < 50 ? '#ffcdd2' : '#c8e6c9'}; padding: 8px; border-radius: 4px; font-weight: bold;">
-                    <strong>Sat. Bases (V%)</strong><br>${fmt(V)}%
-                </div>
-            </div>
-
-            <!-- FÍSICA E MICRO (Compacto em linha única) -->
-             <div style="margin-top: 15px; font-size: 0.8rem; border-top: 1px solid #ddd; padding-top: 5px;">
-                <strong>Física:</strong> Argila: ${val(a.argila)}% | Areia: ${val(a.areia)}% <br>
-                <strong>Micro:</strong> B: ${fmt(a.b)} | Zn: ${fmt(a.zn)} | Cu: ${fmt(a.cu)} | Mn: ${fmt(a.mn)} | Fe: ${fmt(a.fe)}
-            </div>
-
+            <!-- RODAPÉ DE ESTILO -->
+            <style>
+                .box-res { border: 1px solid #ddd; padding: 4px; border-radius: 4px; background: #fff; }
+            </style>
         </div>
     `;
 
