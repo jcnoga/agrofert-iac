@@ -420,42 +420,98 @@ preencherTeste: function() {
         if(document.getElementById('dashTotalCulturas')) document.getElementById('dashTotalCulturas').textContent = this.data.culturas.length;
     },
 
+// --- SUBSTITUA ESTA FUNÇÃO NO SEU APP.JS ---
+
 gerarRecomendacao: function(id) {
-    const amostra = this.data.amostras.find(a => a.id === id);
-    if(!amostra) return;
+    const a = this.data.amostras.find(i => i.id === id);
+    if(!a) return;
 
-    // 1. Converter strings para números
-    const Ca = parseFloat(amostra.ca) || 0;
-    const Mg = parseFloat(amostra.mg) || 0;
-    const K = parseFloat(amostra.k) || 0;
-    const HAl = parseFloat(amostra.hal) || 0;
+    // 1. Helpers para limpar o código
+    const val = (v) => parseFloat(v) || 0;
+    const fmt = (v) => val(v).toFixed(2);
+    
+    // 2. Cálculos Agronômicos (Básicos)
+    const SB = val(a.ca) + val(a.mg) + val(a.k);
+    const CTC = SB + val(a.hal);
+    const V = CTC > 0 ? ((SB / CTC) * 100) : 0;
 
-    // 2. Cálculos Básicos
-    const SB = Ca + Mg + K; // Soma de Bases
-    const CTC = SB + HAl;   // Capacidade de Troca Catiônica
-    const V = (CTC > 0) ? ((SB / CTC) * 100).toFixed(2) : 0; // Saturação por bases (%)
-
-    // 3. Gerar o HTML
+    // 3. HTML Compacto com Grid
+    // Usamos 'display: grid' para colocar 3 ou 4 itens por linha
     const html = `
-        <h2>Relatório Técnico</h2>
-        <p><strong>Produtor:</strong> ${amostra.produtor}</p>
-        <p><strong>Cultura:</strong> ${amostra.cultura}</p>
-        <hr>
-        <h3>Análise de Fertilidade</h3>
-        <ul>
-            <li><strong>Soma de Bases (SB):</strong> ${SB.toFixed(2)} cmolc/dm³</li>
-            <li><strong>CTC (pH 7.0):</strong> ${CTC.toFixed(2)} cmolc/dm³</li>
-            <li><strong>Saturação por Bases (V%):</strong> ${V}%</li>
-        </ul>
-        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 10px;">
-            <strong>Interpretação:</strong><br>
-            ${V < 50 ? "⚠️ Solo Ácido - Necessário Calagem" : "✅ Saturação Adequada (dependendo da cultura)"}
+        <div style="font-family: sans-serif; color: #333;">
+            
+            <!-- CABEÇALHO COMPACTO -->
+            <div style="border-bottom: 2px solid #2e7d32; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="margin: 0; color: #2e7d32;">Relatório de Análise</h2>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 5px;">
+                    <span><strong>Produtor:</strong> ${a.produtor}</span>
+                    <span><strong>Data:</strong> ${a.data.split('-').reverse().join('/')}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                    <span><strong>Talhão:</strong> ${a.talhao}</span>
+                    <span><strong>Cultura:</strong> ${a.cultura}</span>
+                </div>
+            </div>
+
+            <!-- GRID DE RESULTADOS (4 Colunas por linha) -->
+            <h4 style="margin: 0 0 5px 0; background: #eee; padding: 5px;">Química do Solo</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 0.85rem; text-align: center; margin-bottom: 15px;">
+                
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>pH</strong><br>${fmt(a.ph)}
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>M.O.</strong><br>${fmt(a.mo)}%
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>P (mg)</strong><br>${val(a.p).toFixed(1)}
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>S (mg)</strong><br>${val(a.s).toFixed(1)}
+                </div>
+
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>Ca</strong><br>${fmt(a.ca)}
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>Mg</strong><br>${fmt(a.mg)}
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px;">
+                    <strong>K</strong><br>${fmt(a.k)}
+                </div>
+                <div style="border: 1px solid #ddd; padding: 5px; border-radius: 4px; background: #fff3e0;">
+                    <strong>Al</strong><br>${fmt(a.al)}
+                </div>
+            </div>
+
+            <!-- GRID DE CÁLCULOS (3 Colunas por linha) -->
+            <h4 style="margin: 0 0 5px 0; background: #eee; padding: 5px;">Índices Calculados</h4>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 0.9rem; text-align: center;">
+                
+                <div style="background: #e8f5e9; padding: 8px; border-radius: 4px;">
+                    <strong>Soma Bases (SB)</strong><br>${fmt(SB)}
+                </div>
+                <div style="background: #e8f5e9; padding: 8px; border-radius: 4px;">
+                    <strong>CTC Total</strong><br>${fmt(CTC)}
+                </div>
+                <div style="background: ${V < 50 ? '#ffcdd2' : '#c8e6c9'}; padding: 8px; border-radius: 4px; font-weight: bold;">
+                    <strong>Sat. Bases (V%)</strong><br>${fmt(V)}%
+                </div>
+            </div>
+
+            <!-- FÍSICA E MICRO (Compacto em linha única) -->
+             <div style="margin-top: 15px; font-size: 0.8rem; border-top: 1px solid #ddd; padding-top: 5px;">
+                <strong>Física:</strong> Argila: ${val(a.argila)}% | Areia: ${val(a.areia)}% <br>
+                <strong>Micro:</strong> B: ${fmt(a.b)} | Zn: ${fmt(a.zn)} | Cu: ${fmt(a.cu)} | Mn: ${fmt(a.mn)} | Fe: ${fmt(a.fe)}
+            </div>
+
         </div>
     `;
 
     document.getElementById('conteudoRecomendacao').innerHTML = html;
     document.getElementById('modalRecomendacao').style.display = 'block';
 },
+
     fecharModal: function() { document.getElementById('modalRecomendacao').style.display = 'none'; },
     
     atualizarDetalhesCultura: function() {
