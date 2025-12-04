@@ -3,30 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroFert - Sistema de Gestão Agronômica</title>
+    <title>AgroFert - Sistema de Gestão</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <!-- NAV BAR -->
+    <!-- NAV BAR (MENU PLANO - SEM DROPDOWN) -->
     <nav class="navbar">
         <div class="brand" onclick="app.navigateTo('home')">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34 5.71 21.82 7.6 22 9.5 22 17.5 22 22 17.5 22 9.5c0-3.5-2.5-6.5-5-1.5zM7 2c5 1 7.5 5 10 9-4-1-6-4-10-9z" fill="#2e7d32"/></svg>
             Agro<span>Fert</span>
         </div>
         <ul class="nav-menu">
             <li><a class="nav-link active" id="nav-home" onclick="app.navigateTo('home')">Início</a></li>
-            <li class="dropdown">
-                <a class="nav-link" href="#">Cadastros ▼</a>
-                <div class="dropdown-content">
-                    <a onclick="app.navigateTo('agronomos')">Agrônomos</a>
-                    <a onclick="app.navigateTo('culturas')">Culturas</a>
-                    <a onclick="app.navigateTo('tecnologias')">Tecnologias</a>
-                    <a onclick="app.navigateTo('quimicos')">Elementos</a>
-                </div>
-            </li>
-            <li><a class="nav-link" id="nav-amostras" onclick="app.navigateTo('amostras')">Amostras</a></li>
+            <li><a class="nav-link" id="nav-agronomos" onclick="app.navigateTo('agronomos')">Agrônomos</a></li>
+            <li><a class="nav-link" id="nav-culturas" onclick="app.navigateTo('culturas')">Culturas</a></li>
+            <li><a class="nav-link" id="nav-tecnologias" onclick="app.navigateTo('tecnologias')">Tecnologias</a></li>
+            <li><a class="nav-link" id="nav-quimicos" onclick="app.navigateTo('quimicos')">Elementos</a></li>
+            <li><a class="nav-link" id="nav-amostras" onclick="app.navigateTo('amostras')" style="color: var(--soil-color); font-weight:700;">Amostras</a></li>
         </ul>
     </nav>
 
@@ -34,20 +28,20 @@
     <div id="view-home" class="view-section active">
         <div class="hero-card">
             <h1 class="hero-title">Bem-vindo ao AgroFert</h1>
-            <p class="hero-subtitle">Sistema Integrado de Recomendação Agronômica (IAC 100).</p>
+            <p class="hero-subtitle">Sistema Integrado de Recomendação Agronômica.</p>
         </div>
         <div class="dashboard-grid">
             <div class="card dash-card soil" onclick="app.navigateTo('amostras')">
                 <h3 id="dashTotalAmostras">0</h3>
-                <p>Amostras de Solo</p>
+                <p>Amostras</p>
+            </div>
+            <div class="card dash-card" onclick="app.navigateTo('agronomos')">
+                <h3 id="dashTotalAgronomos">0</h3>
+                <p>Agrônomos</p>
             </div>
             <div class="card dash-card" onclick="app.navigateTo('culturas')">
                 <h3 id="dashTotalCulturas">0</h3>
-                <p>Culturas Cadastradas</p>
-            </div>
-             <div class="card dash-card" onclick="app.navigateTo('agronomos')">
-                <h3 id="dashTotalAgronomos">0</h3>
-                <p>Agrônomos</p>
+                <p>Culturas</p>
             </div>
         </div>
     </div>
@@ -55,14 +49,14 @@
     <!-- AMOSTRAS VIEW -->
     <div id="view-amostras" class="view-section">
         <header>
-            <h1>Gestão de Amostras</h1>
+            <h1>Amostras de Solo</h1>
             <button type="button" class="btn-test" onclick="app.preencherTeste()">⚡ Preencher Teste</button>
         </header>
 
         <form id="amostraForm">
             <input type="hidden" id="idAmostra">
             <div class="card">
-                <h3 class="section-title">1. Dados da Propriedade</h3>
+                <h3 class="section-title">1. Dados Gerais</h3>
                 <div class="grid-2">
                     <div class="input-wrapper"><label>Produtor</label><input type="text" id="samp_produtor" required></div>
                     <div class="input-wrapper"><label>Propriedade</label><input type="text" id="samp_propriedade" required></div>
@@ -75,51 +69,51 @@
                     </div>
                 </div>
 
-                <h3 class="section-title">2. Identificação e Cultura</h3>
+                <h3 class="section-title">2. Identificação</h3>
                 <div class="grid-4">
-                    <div class="input-wrapper"><label>Protocolo Lab.</label><input type="text" id="samp_protocolo"></div>
+                    <div class="input-wrapper"><label>Protocolo</label><input type="text" id="samp_protocolo"></div>
                     <div class="input-wrapper"><label>Talhão</label><input type="text" id="samp_talhao" required></div>
-                    <div class="input-wrapper"><label>Profundidade (cm)</label><input type="text" id="samp_profundidade" value="0-20"></div>
-                    <div class="input-wrapper"><label>Data Coleta</label><input type="date" id="samp_data" required></div>
+                    <div class="input-wrapper"><label>Profundidade</label><input type="text" id="samp_profundidade" value="0-20"></div>
+                    <div class="input-wrapper"><label>Data</label><input type="date" id="samp_data" required></div>
                 </div>
                 <div class="grid-3 mt-1">
                     <div class="input-wrapper">
                         <label>Cultura</label>
                         <select id="samp_cultura" required onchange="app.atualizarDetalhesCultura()"></select>
                     </div>
-                    <div class="input-wrapper"><label>Produtividade (t/ha)</label><input type="number" step="0.1" id="samp_producao" placeholder="Ex: 10"></div>
-                    <div class="input-wrapper"><label>Espaçamento (m)</label><input type="text" id="samp_espacamento"></div>
+                    <div class="input-wrapper"><label>Produtividade (t/ha)</label><input type="number" step="0.1" id="samp_producao"></div>
+                    <div class="input-wrapper"><label>Espaçamento</label><input type="text" id="samp_espacamento"></div>
                 </div>
 
-                <h3 class="section-title">3. Resultados Químicos</h3>
+                <h3 class="section-title">3. Química</h3>
                 <div class="grid-4">
-                    <div class="input-wrapper"><label>pH (H₂O)</label><input type="number" step="0.01" id="samp_ph"></div>
-                    <div class="input-wrapper"><label>M.O. (g/dm³)</label><input type="number" step="0.1" id="samp_mo"></div>
-                    <div class="input-wrapper"><label>P-resina (mg/dm³)</label><input type="number" step="0.1" id="samp_p"></div>
-                    <div class="input-wrapper"><label>S (mg/dm³)</label><input type="number" step="0.1" id="samp_s"></div>
+                    <div class="input-wrapper"><label>pH</label><input type="number" step="0.01" id="samp_ph"></div>
+                    <div class="input-wrapper"><label>M.O.</label><input type="number" step="0.1" id="samp_mo"></div>
+                    <div class="input-wrapper"><label>P-resina</label><input type="number" step="0.1" id="samp_p"></div>
+                    <div class="input-wrapper"><label>S</label><input type="number" step="0.1" id="samp_s"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Ca (cmolc/dm³)</label><input type="number" step="0.01" id="samp_ca"></div>
-                    <div class="input-wrapper"><label>Mg (cmolc/dm³)</label><input type="number" step="0.01" id="samp_mg"></div>
-                    <div class="input-wrapper"><label>K (cmolc/dm³)</label><input type="number" step="0.01" id="samp_k"></div>
-                    <div class="input-wrapper"><label>H+Al (cmolc/dm³)</label><input type="number" step="0.01" id="samp_hal"></div>
+                    <div class="input-wrapper"><label>Ca</label><input type="number" step="0.01" id="samp_ca"></div>
+                    <div class="input-wrapper"><label>Mg</label><input type="number" step="0.01" id="samp_mg"></div>
+                    <div class="input-wrapper"><label>K</label><input type="number" step="0.01" id="samp_k"></div>
+                    <div class="input-wrapper"><label>H+Al</label><input type="number" step="0.01" id="samp_hal"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Al (cmolc/dm³)</label><input type="number" step="0.01" id="samp_al"></div>
+                    <div class="input-wrapper"><label>Al</label><input type="number" step="0.01" id="samp_al"></div>
                 </div>
 
-                <h3 class="section-title">4. Física e Micronutrientes</h3>
+                <h3 class="section-title">4. Física / Micro</h3>
                 <div class="grid-4">
                     <div class="input-wrapper"><label>Argila %</label><input type="number" step="1" id="samp_argila"></div>
                     <div class="input-wrapper"><label>Areia %</label><input type="number" step="1" id="samp_areia"></div>
-                    <div class="input-wrapper"><label>Zn (mg/dm³)</label><input type="number" step="0.1" id="samp_zn"></div>
-                    <div class="input-wrapper"><label>B (mg/dm³)</label><input type="number" step="0.1" id="samp_b"></div>
+                    <div class="input-wrapper"><label>Zn</label><input type="number" step="0.1" id="samp_zn"></div>
+                    <div class="input-wrapper"><label>B</label><input type="number" step="0.1" id="samp_b"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Mn (mg/dm³)</label><input type="number" step="0.1" id="samp_mn"></div>
-                    <div class="input-wrapper"><label>Cu (mg/dm³)</label><input type="number" step="0.1" id="samp_cu"></div>
-                    <div class="input-wrapper"><label>Fe (mg/dm³)</label><input type="number" step="0.1" id="samp_fe"></div>
-                    <div class="input-wrapper"><label>Mo (mg/dm³)</label><input type="number" step="0.01" id="samp_mo_micro"></div>
+                    <div class="input-wrapper"><label>Mn</label><input type="number" step="0.1" id="samp_mn"></div>
+                    <div class="input-wrapper"><label>Cu</label><input type="number" step="0.1" id="samp_cu"></div>
+                    <div class="input-wrapper"><label>Fe</label><input type="number" step="0.1" id="samp_fe"></div>
+                    <div class="input-wrapper"><label>Mo</label><input type="number" step="0.01" id="samp_mo_micro"></div>
                 </div>
 
                 <div class="btn-container mt-2">
@@ -131,7 +125,7 @@
 
         <div class="table-container">
             <table id="tabelaAmostras">
-                <thead><tr><th>ID/Talhão</th><th>Produtor</th><th>Cultura</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Produtor</th><th>Talhão</th><th>Cultura</th><th>Ações</th></tr></thead>
                 <tbody id="listaCorpoAmostra"></tbody>
             </table>
         </div>
@@ -139,7 +133,7 @@
 
     <!-- AGRÔNOMOS -->
     <div id="view-agronomos" class="view-section">
-        <header><h1>Cadastro de Agrônomos</h1></header>
+        <header><h1>Agrônomos</h1></header>
         <div class="card">
             <form id="agronomoForm">
                 <input type="hidden" id="idAgronomo">
@@ -158,7 +152,7 @@
 
     <!-- CULTURAS -->
     <div id="view-culturas" class="view-section">
-        <header><h1>Cadastro de Culturas</h1></header>
+        <header><h1>Culturas</h1></header>
         <div class="card">
             <form id="culturaForm">
                 <input type="hidden" id="idCultura">
@@ -221,13 +215,12 @@
             <span class="close-modal" onclick="app.fecharModal()">&times;</span>
             <div id="conteudoRecomendacao" class="report-content"></div>
             <div class="modal-actions">
-                <button class="btn-action btn-save" onclick="window.print()">🖨️ Imprimir / PDF</button>
+                <button class="btn-action btn-save" onclick="window.print()">🖨️ Imprimir</button>
                 <button class="btn-action btn-cancel" onclick="app.fecharModal()">Fechar</button>
             </div>
         </div>
     </div>
 
-    <!-- SCRIPT TIPO MODULE -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
