@@ -389,7 +389,8 @@ preencherTeste: function() {
     const al = ph < 5.5 ? rand(0.2, 0.8, 2) : "0.00";
     set('samp_al', al);
 
-    set('samp_mo', rand(25, 38, 1));  // Matéria Orgânica: 25 a 38 g/dm³
+  // Matéria Orgânica em % (Geralmente vai de 1.5% a 5.0% em solos agrícolas)
+    set('samp_mo', rand(1.5, 4.5, 1));
     set('samp_p', rand(8, 25, 1));    // Fósforo: 8 a 25 mg/dm³
     set('samp_s', rand(4, 12, 1));    // Enxofre: 4 a 12 mg/dm³
 
