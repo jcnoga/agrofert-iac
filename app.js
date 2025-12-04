@@ -204,15 +204,21 @@ const app = {
     // --- RENDERIZAÇÃO DE TABELAS ---
     renderAllTables: function() {
         // Renderiza cada tabela se houver dados
-        this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
-            <td>${i.produtor}<br><small>${i.talhao}</small></td>
-            <td>${i.cultura}</td>
-            <td>
-                <button class="btn-rec" onclick="app.gerarRecomendacao('${i.id}')">Relat.</button> 
-                <button class="btn-action btn-cancel" onclick="app.editarItem('amostras','${i.id}')">✎</button> 
-                <button class="btn-action btn-cancel" onclick="app.deleteData('amostras','${i.id}')">🗑️</button>
-            </td>
-        `);
+this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
+    <td>${i.produtor}<br><small>${i.talhao}</small></td>
+    <td>
+        ${i.cultura} <br>
+        <!-- AQUI ESTÁ A MUDANÇA: Formata o número e adiciona "t/ha" -->
+        <small style="color: #2e7d32;">
+            Prod: ${(parseFloat(i.producao) || 0).toFixed(2)} t/ha
+        </small>
+    </td>
+    <td>
+        <button class="btn-rec" onclick="app.gerarRecomendacao('${i.id}')">Relat.</button> 
+        <button class="btn-action btn-cancel" onclick="app.editarItem('amostras','${i.id}')">✎</button> 
+        <button class="btn-action btn-cancel" onclick="app.deleteData('amostras','${i.id}')">🗑️</button>
+    </td>
+`);
 
         this.renderTable('listaCorpoAgro', this.data.agronomos, i => `
             <td>${i.nome}</td><td>${i.crea}</td>
@@ -379,13 +385,42 @@ const app = {
         if(document.getElementById('dashTotalCulturas')) document.getElementById('dashTotalCulturas').textContent = this.data.culturas.length;
     },
 
-    gerarRecomendacao: function(id) {
-        const amostra = this.data.amostras.find(a => a.id === id);
-        if(!amostra) return;
-        document.getElementById('conteudoRecomendacao').innerHTML = `<h2>Relatório</h2><p>Amostra ID: ${id}</p><p>Em breve cálculos.</p>`;
-        document.getElementById('modalRecomendacao').style.display = 'block';
-    },
+gerarRecomendacao: function(id) {
+    const amostra = this.data.amostras.find(a => a.id === id);
+    if(!amostra) return;
 
+    // 1. Converter strings para números
+    const Ca = parseFloat(amostra.ca) || 0;
+    const Mg = parseFloat(amostra.mg) || 0;
+    const K = parseFloat(amostra.k) || 0;
+    const HAl = parseFloat(amostra.hal) || 0;
+
+    // 2. Cálculos Básicos
+    const SB = Ca + Mg + K; // Soma de Bases
+    const CTC = SB + HAl;   // Capacidade de Troca Catiônica
+    const V = (CTC > 0) ? ((SB / CTC) * 100).toFixed(2) : 0; // Saturação por bases (%)
+
+    // 3. Gerar o HTML
+    const html = `
+        <h2>Relatório Técnico</h2>
+        <p><strong>Produtor:</strong> ${amostra.produtor}</p>
+        <p><strong>Cultura:</strong> ${amostra.cultura}</p>
+        <hr>
+        <h3>Análise de Fertilidade</h3>
+        <ul>
+            <li><strong>Soma de Bases (SB):</strong> ${SB.toFixed(2)} cmolc/dm³</li>
+            <li><strong>CTC (pH 7.0):</strong> ${CTC.toFixed(2)} cmolc/dm³</li>
+            <li><strong>Saturação por Bases (V%):</strong> ${V}%</li>
+        </ul>
+        <div style="background: #e8f5e9; padding: 10px; border-radius: 8px; margin-top: 10px;">
+            <strong>Interpretação:</strong><br>
+            ${V < 50 ? "⚠️ Solo Ácido - Necessário Calagem" : "✅ Saturação Adequada (dependendo da cultura)"}
+        </div>
+    `;
+
+    document.getElementById('conteudoRecomendacao').innerHTML = html;
+    document.getElementById('modalRecomendacao').style.display = 'block';
+},
     fecharModal: function() { document.getElementById('modalRecomendacao').style.display = 'none'; },
     
     atualizarDetalhesCultura: function() {
