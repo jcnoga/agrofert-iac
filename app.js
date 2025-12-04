@@ -16,13 +16,14 @@ import {
 
 // 2. CONFIGURAÇÃO (Pegue estes dados no Console do Firebase)
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_PROJECT_ID.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEU_PROJECT_ID.appspot.com",
-    messagingSenderId: "SEU_SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "AIzaSyDGd2QBLfYTyAtSwaqsJci-sy9stmb1TGQ",
+  authDomain: "agrofert-2a6e3.firebaseapp.com",
+  projectId: "agrofert-2a6e3",
+  storageBucket: "agrofert-2a6e3.firebasestorage.app",
+  messagingSenderId: "776623089218",
+  appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
 };
+
 
 // 3. INICIALIZAÇÃO
 const firebaseApp = initializeApp(firebaseConfig);
