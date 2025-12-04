@@ -9,7 +9,7 @@
 </head>
 <body>
 
-    <!-- NAV BAR (MENU PLANO - SEM DROPDOWN) -->
+    <!-- MENU DE NAVEGAÇÃO (PLANO / SEM DROPDOWN) -->
     <nav class="navbar">
         <div class="brand" onclick="app.navigateTo('home')">
             Agro<span>Fert</span>
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- AMOSTRAS VIEW -->
+    <!-- VIEW: CADASTRO DE AMOSTRAS -->
     <div id="view-amostras" class="view-section">
         <header>
             <h1>Amostras de Solo</h1>
@@ -76,44 +76,46 @@
                     <div class="input-wrapper"><label>Profundidade</label><input type="text" id="samp_profundidade" value="0-20"></div>
                     <div class="input-wrapper"><label>Data</label><input type="date" id="samp_data" required></div>
                 </div>
-                <div class="grid-3 mt-1">
+                
+                <div class="grid-4 mt-1">
                     <div class="input-wrapper">
                         <label>Cultura</label>
                         <select id="samp_cultura" required onchange="app.atualizarDetalhesCultura()"></select>
                     </div>
                     <div class="input-wrapper"><label>Produtividade (t/ha)</label><input type="number" step="0.1" id="samp_producao"></div>
-                    <div class="input-wrapper"><label>Espaçamento</label><input type="text" id="samp_espacamento"></div>
+                    <div class="input-wrapper"><label>Esp. Linha (m)</label><input type="number" step="0.01" id="samp_esp_linha" placeholder="Ex: 0.8"></div>
+                    <div class="input-wrapper"><label>Esp. Cova (m)</label><input type="number" step="0.01" id="samp_esp_cova" placeholder="Ex: 0.2"></div>
                 </div>
 
                 <h3 class="section-title">3. Química</h3>
                 <div class="grid-4">
-                    <div class="input-wrapper"><label>pH</label><input type="number" step="0.01" id="samp_ph"></div>
-                    <div class="input-wrapper"><label>M.O.</label><input type="number" step="0.1" id="samp_mo"></div>
-                    <div class="input-wrapper"><label>P-resina</label><input type="number" step="0.1" id="samp_p"></div>
-                    <div class="input-wrapper"><label>S</label><input type="number" step="0.1" id="samp_s"></div>
+                    <div class="input-wrapper"><label>pH (H₂O)</label><input type="number" step="0.01" id="samp_ph"></div>
+                    <div class="input-wrapper"><label>M.O. (g/dm³)</label><input type="number" step="0.1" id="samp_mo"></div>
+                    <div class="input-wrapper"><label>P-resina (mg/dm³)</label><input type="number" step="0.1" id="samp_p"></div>
+                    <div class="input-wrapper"><label>S (mg/dm³)</label><input type="number" step="0.1" id="samp_s"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Ca</label><input type="number" step="0.01" id="samp_ca"></div>
-                    <div class="input-wrapper"><label>Mg</label><input type="number" step="0.01" id="samp_mg"></div>
-                    <div class="input-wrapper"><label>K</label><input type="number" step="0.01" id="samp_k"></div>
-                    <div class="input-wrapper"><label>H+Al</label><input type="number" step="0.01" id="samp_hal"></div>
+                    <div class="input-wrapper"><label>Ca (cmolc/dm³)</label><input type="number" step="0.01" id="samp_ca"></div>
+                    <div class="input-wrapper"><label>Mg (cmolc/dm³)</label><input type="number" step="0.01" id="samp_mg"></div>
+                    <div class="input-wrapper"><label>K (cmolc/dm³)</label><input type="number" step="0.01" id="samp_k"></div>
+                    <div class="input-wrapper"><label>H+Al (cmolc/dm³)</label><input type="number" step="0.01" id="samp_hal"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Al</label><input type="number" step="0.01" id="samp_al"></div>
+                    <div class="input-wrapper"><label>Al (cmolc/dm³)</label><input type="number" step="0.01" id="samp_al"></div>
                 </div>
 
                 <h3 class="section-title">4. Física / Micro</h3>
                 <div class="grid-4">
                     <div class="input-wrapper"><label>Argila %</label><input type="number" step="1" id="samp_argila"></div>
                     <div class="input-wrapper"><label>Areia %</label><input type="number" step="1" id="samp_areia"></div>
-                    <div class="input-wrapper"><label>Zn</label><input type="number" step="0.1" id="samp_zn"></div>
-                    <div class="input-wrapper"><label>B</label><input type="number" step="0.1" id="samp_b"></div>
+                    <div class="input-wrapper"><label>Zn (mg/dm³)</label><input type="number" step="0.01" id="samp_zn"></div>
+                    <div class="input-wrapper"><label>B (mg/dm³)</label><input type="number" step="0.01" id="samp_b"></div>
                 </div>
                 <div class="grid-4 mt-1">
-                    <div class="input-wrapper"><label>Mn</label><input type="number" step="0.1" id="samp_mn"></div>
-                    <div class="input-wrapper"><label>Cu</label><input type="number" step="0.1" id="samp_cu"></div>
-                    <div class="input-wrapper"><label>Fe</label><input type="number" step="0.1" id="samp_fe"></div>
-                    <div class="input-wrapper"><label>Mo</label><input type="number" step="0.01" id="samp_mo_micro"></div>
+                    <div class="input-wrapper"><label>Mn (mg/dm³)</label><input type="number" step="0.01" id="samp_mn"></div>
+                    <div class="input-wrapper"><label>Cu (mg/dm³)</label><input type="number" step="0.01" id="samp_cu"></div>
+                    <div class="input-wrapper"><label>Fe (mg/dm³)</label><input type="number" step="0.01" id="samp_fe"></div>
+                    <div class="input-wrapper"><label>Mo (mg/dm³)</label><input type="number" step="0.001" id="samp_mo_micro"></div>
                 </div>
 
                 <div class="btn-container mt-2">
@@ -131,7 +133,7 @@
         </div>
     </div>
 
-    <!-- AGRÔNOMOS -->
+    <!-- VIEW: CADASTRO DE AGRÔNOMOS -->
     <div id="view-agronomos" class="view-section">
         <header><h1>Agrônomos</h1></header>
         <div class="card">
@@ -150,7 +152,7 @@
         <div class="table-container"><table id="tabelaAgronomos"><thead><tr><th>Nome</th><th>CREA</th><th>Ações</th></tr></thead><tbody id="listaCorpoAgro"></tbody></table></div>
     </div>
 
-    <!-- CULTURAS -->
+    <!-- VIEW: CADASTRO DE CULTURAS -->
     <div id="view-culturas" class="view-section">
         <header><h1>Culturas</h1></header>
         <div class="card">
@@ -170,7 +172,7 @@
         <div class="table-container"><table id="tabelaCulturas"><thead><tr><th>Cultura</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="listaCorpoCultura"></tbody></table></div>
     </div>
 
-    <!-- TECNOLOGIAS -->
+    <!-- VIEW: CADASTRO DE TECNOLOGIAS -->
     <div id="view-tecnologias" class="view-section">
         <header><h1>Tecnologias</h1></header>
         <div class="card">
@@ -189,7 +191,7 @@
         <div class="table-container"><table id="tabelaTecnologias"><thead><tr><th>Tecnologia</th><th>Região</th><th>Ações</th></tr></thead><tbody id="listaCorpoTec"></tbody></table></div>
     </div>
 
-    <!-- ELEMENTOS -->
+    <!-- VIEW: CADASTRO DE ELEMENTOS -->
     <div id="view-quimicos" class="view-section">
         <header><h1>Elementos</h1></header>
         <div class="card">
