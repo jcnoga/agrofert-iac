@@ -81,16 +81,65 @@ th { background: #e8f5e9; color: var(--primary-dark); }
     .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
     .btn-test { float: none; width: 100%; margin-bottom: 15px; }
 }
+/* --- ESTILOS DE IMPRESSÃO (CORRIGIDO) --- */
 @media print {
-    .navbar, .btn-container, .close-modal, .modal-actions, .btn-test { display: none; }
-    .modal { position: static; height: auto; background: white; }
-    .modal-content { width: 100%; margin: 0; border: none; height: auto; overflow: visible; }
-}
-/* --- ESTILOS DO RELATÓRIO DE RECOMENDAÇÃO --- */
-.report-container {
-    font-family: 'Segoe UI', sans-serif;
-    color: #333;
-    max-width: 100%;
+    /* 1. Esconde visualmente TUDO na página */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 2. Torna visível APENAS o modal e seus descendentes */
+    #modalRecomendacao, #modalRecomendacao * {
+        visibility: visible;
+    }
+
+    /* 3. Posiciona o modal no topo absoluto da folha de papel */
+    #modalRecomendacao {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white;
+        height: auto; /* Permite que o relatório cresça se tiver várias páginas */
+        overflow: visible !important;
+        z-index: 9999;
+    }
+
+    /* 4. Reseta a caixa branca do modal para ocupar 100% do papel */
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+    }
+
+    /* 5. Esconde elementos de interface que não devem sair no papel */
+    .modal-actions,      /* Botões de Imprimir/Fechar */
+    .close-modal,        /* O "X" no canto */
+    .btn-action,         /* Botões gerais */
+    .navbar,             /* Menu superior */
+    .btn-container,
+    ::-webkit-scrollbar { /* Barra de rolagem */
+        display: none !important;
+    }
+
+    /* 6. Ajustes de fonte para economizar tinta e melhorar leitura */
+    body {
+        font-size: 12pt;
+        background: white;
+        color: black;
+    }
+    
+    /* Garante que cores de fundo (tabelas/headers) apareçam */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
 
 .report-header {
