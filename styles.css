@@ -330,11 +330,70 @@ tr:hover { background-color: #f9f9f9; }
 }
 
 /* --- ESTILOS DE IMPRESSÃO (BLINDADO) --- */
+/* --- CORREÇÃO FINAL DE IMPRESSÃO (SEM PÁGINAS EM BRANCO) --- */
 @media print {
-    /* 1. Esconde tudo da página normal */
-    body * {
-        visibility: hidden;
+    /* 1. Oculta e remove do layout TUDO que não for o modal */
+    /* Isso garante que o site ao fundo tenha altura ZERO */
+    body > :not(#modalRecomendacao) {
+        display: none !important;
     }
+
+    /* 2. Reseta o corpo da página para evitar margens estranhas */
+    html, body {
+        height: auto !important;
+        overflow: visible !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* 3. Configura o Modal para ser o único elemento do fluxo */
+    #modalRecomendacao {
+        display: block !important;
+        position: relative !important; /* Relative flui melhor que absolute para múltiplas páginas */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        background: white !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* 4. Garante que o conteúdo interno do modal apareça */
+    #modalRecomendacao * {
+        visibility: visible !important;
+    }
+    
+    /* 5. Ajustes internos do relatório para caber na A4 */
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 20px !important; /* Margem interna suave */
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    /* 6. Esconde botões de ação (Fechar, Imprimir) */
+    .modal-actions, .close-modal, .btn-rec, .btn-action {
+        display: none !important;
+    }
+
+    /* 7. Configurações de página (Margens da impressora) */
+    @page {
+        margin: 1.5cm; /* Margem padrão A4 */
+        size: auto;
+    }
+
+    /* 8. Força impressão de cores de fundo (Gráficos e Tabelas) */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
 
     /* 2. Mostra apenas o modal e seus filhos */
     #modalRecomendacao, #modalRecomendacao * {
