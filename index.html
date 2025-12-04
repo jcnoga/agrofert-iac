@@ -224,6 +224,46 @@
     </div>
 
     <script type="module" src="app.js"></script>
+	
+<head>
+    <!-- ... seus outros links ... -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- COLE ISTO AQUI PARA FORÇAR O MENU A APARECER -->
+    <style>
+        body {
+            padding-top: 80px !important;
+        }
+        .navbar {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 70px !important;
+            background-color: #ffffff !important;
+            border-bottom: 4px solid #2e7d32 !important; /* Borda verde grossa para ver bem */
+            z-index: 999999 !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+        }
+        .nav-menu {
+            display: flex !important;
+            list-style: none !important;
+            gap: 15px !important;
+        }
+        .nav-link {
+            color: #333 !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+        }
+        /* Para garantir que não suma na impressão da tela */
+        @media screen {
+            .navbar { display: flex !important; }
+        }
+    </style>
+</head>	
 
 </body>
 </html>
