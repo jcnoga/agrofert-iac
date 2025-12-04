@@ -1,9 +1,11 @@
+/* --- ARQUIVO: styles.css (COMPLETO) --- */
+
 :root {
-    --primary-color: #2e7d32;
-    --primary-dark: #1b5e20;
-    --soil-color: #795548;
-    --bg-color: #eef2f6;
-    --card-bg: #ffffff;
+    --primary-color: #2e7d32;   /* Verde Padrão */
+    --primary-dark: #1b5e20;    /* Verde Escuro */
+    --soil-color: #795548;      /* Marrom Solo */
+    --bg-color: #eef2f6;        /* Fundo Cinza Claro */
+    --card-bg: #ffffff;         /* Fundo Branco */
     --text-color: #333;
     --nav-height: 70px;
     --radius: 12px;
@@ -11,82 +13,190 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-body { background-color: var(--bg-color); color: var(--text-color); padding-top: var(--nav-height); }
-
-/* --- MENU PLANO E RESPONSIVO --- */
-.navbar {
-    background-color: #fff; height: var(--nav-height); display: flex; justify-content: space-between;
-    align-items: center; padding: 0 1rem; position: fixed; top: 0; width: 100%; z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    white-space: nowrap; /* Impede quebra de linha feia */
+body { 
+    background-color: var(--bg-color); 
+    color: var(--text-color); 
+    padding-top: var(--nav-height); /* Espaço para o menu não cobrir o conteúdo */
 }
-.brand { font-size: 1.5rem; font-weight: 700; color: var(--primary-dark); cursor: pointer; margin-right: 20px;}
+
+/* --- NAVBAR (MENU SUPERIOR) --- */
+.navbar {
+    background-color: #fff; 
+    height: var(--nav-height); 
+    display: flex; 
+    justify-content: space-between;
+    align-items: center; 
+    padding: 0 1rem; 
+    position: fixed; /* Fixa no topo */
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    z-index: 1000; /* Garante que fique acima do conteúdo */
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    white-space: nowrap;
+}
+
+.brand { 
+    font-size: 1.5rem; 
+    font-weight: 700; 
+    color: var(--primary-dark); 
+    cursor: pointer; 
+    margin-right: 20px;
+}
 .brand span { color: var(--primary-color); }
 
 .nav-menu { 
     display: flex; 
     list-style: none; 
     gap: 1rem; 
-    overflow-x: auto; /* Permite rolagem lateral no celular se precisar */
-    padding-bottom: 5px; /* Espaço para a barra de rolagem */
+    overflow-x: auto; /* Rolagem lateral no celular */
+    padding-bottom: 5px;
+    -webkit-overflow-scrolling: touch;
 }
-.nav-link { text-decoration: none; color: #666; font-weight: 500; cursor: pointer; padding: 5px 10px; border-radius: 4px;}
-.nav-link:hover, .nav-link.active { color: var(--primary-color); background: #e8f5e9; }
 
-/* Layout Geral */
-.view-section { display: none; padding: 2rem; max-width: 1100px; margin: 0 auto; animation: fadeIn 0.4s; }
-.view-section.active { display: block; }
+.nav-link { 
+    text-decoration: none; 
+    color: #666; 
+    font-weight: 500; 
+    cursor: pointer; 
+    padding: 8px 12px; 
+    border-radius: 4px;
+    transition: 0.2s;
+}
+.nav-link:hover, .nav-link.active { 
+    color: var(--primary-color); 
+    background: #e8f5e9; 
+}
+
+/* --- LAYOUT GERAL --- */
+.view-section { 
+    display: none; /* Esconde todas as telas por padrão */
+    padding: 2rem; 
+    max-width: 1100px; 
+    margin: 0 auto; 
+    animation: fadeIn 0.4s; 
+}
+.view-section.active { display: block; } /* Mostra só a ativa */
+
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.card { background: var(--card-bg); border-radius: var(--radius); box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 2rem; }
-.hero-card { background: linear-gradient(135deg, var(--primary-dark), var(--primary-color)); color: white; text-align: center; padding: 3rem; border-radius: var(--radius); margin-bottom: 2rem; }
+/* Cards */
+.card { 
+    background: var(--card-bg); 
+    border-radius: var(--radius); 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+    padding: 2rem; 
+    margin-bottom: 2rem; 
+}
+.hero-card { 
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color)); 
+    color: white; 
+    text-align: center; 
+    padding: 3rem; 
+    border-radius: var(--radius); 
+    margin-bottom: 2rem; 
+}
 
 /* Dashboard */
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
 .dash-card { text-align: center; cursor: pointer; border-bottom: 4px solid var(--primary-color); transition: transform 0.2s; }
 .dash-card:hover { transform: translateY(-5px); }
 .dash-card.soil { border-color: var(--soil-color); }
-.dash-card h3 { font-size: 2.5rem; color: var(--primary-color); }
+.dash-card h3 { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 5px; }
 .dash-card.soil h3 { color: var(--soil-color); }
 
-/* Forms Grid */
+/* --- FORMULÁRIOS (GRIDS) --- */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
-.mt-1 { margin-top: 1rem; } .mt-2 { margin-top: 2rem; }
+.mt-1 { margin-top: 1rem; } 
+.mt-2 { margin-top: 2rem; }
 
 .input-wrapper { display: flex; flex-direction: column; gap: 0.3rem; }
 label { font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); }
-input, select { padding: 0.7rem; border: 2px solid #ddd; border-radius: 6px; font-size: 0.95rem; background: #fafafa; outline: none; width: 100%; transition: 0.2s; }
+
+input, select { 
+    padding: 0.7rem; 
+    border: 2px solid #ddd; 
+    border-radius: 6px; 
+    font-size: 0.95rem; 
+    background: #fafafa; 
+    outline: none; 
+    width: 100%; 
+    transition: 0.2s; 
+}
 input:focus, select:focus { border-color: var(--primary-color); background: #fff; }
 
-/* Buttons & Tables */
-.btn-container { display: flex; gap: 10px; }
-.btn-action { padding: 0.8rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+/* --- BOTÕES --- */
+.btn-container { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-action { padding: 0.8rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
 .btn-save { background: var(--primary-color); color: white; }
+.btn-save:hover { background: var(--primary-dark); }
 .btn-cancel { background: #fff; border: 1px solid #ddd; color: #666; }
-.btn-test { float: right; background: #673ab7; color: white; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; }
+.btn-test { float: right; background: #673ab7; color: white; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem; }
 
-.table-container { overflow-x: auto; }
+/* Botões pequenos dentro da tabela */
+.btn-rec {
+    border: none;
+    background: #2e7d32;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- TABELAS --- */
+.table-container { overflow-x: auto; margin-top: 1rem; }
 table { width: 100%; border-collapse: collapse; min-width: 600px; }
-th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-th { background: #e8f5e9; color: var(--primary-dark); }
+th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
+th { background: #e8f5e9; color: var(--primary-dark); font-weight: 600; }
+tr:hover { background-color: #f9f9f9; }
 
-/* Modal */
-.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-.modal-content { background: #fff; margin: 2% auto; padding: 2rem; width: 90%; max-width: 900px; border-radius: var(--radius); height: 90vh; overflow-y: auto; }
-.close-modal { float: right; font-size: 2rem; cursor: pointer; }
+/* --- MODAL --- */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 2000; /* Acima do Navbar */
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    overflow-y: auto;
+}
+.modal-content { 
+    background: #fff; 
+    margin: 2% auto; 
+    padding: 2rem; 
+    width: 90%; 
+    max-width: 900px; 
+    border-radius: var(--radius); 
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+.close-modal { 
+    position: absolute;
+    right: 20px;
+    top: 10px;
+    font-size: 2rem; 
+    cursor: pointer; 
+    color: #999;
+}
+.modal-actions {
+    margin-top: 20px;
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
 
-@media (max-width: 768px) {
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    .btn-test { float: none; width: 100%; margin-bottom: 15px; }
-}
-@media print {
-    .navbar, .btn-container, .close-modal, .modal-actions, .btn-test { display: none; }
-    .modal { position: static; height: auto; background: white; }
-    .modal-content { width: 100%; margin: 0; border: none; height: auto; overflow: visible; }
-}
-/* --- ESTILOS DO RELATÓRIO DE RECOMENDAÇÃO --- */
+/* --- ESTILOS DO RELATÓRIO DE RECOMENDAÇÃO (IAC & COMPACTO) --- */
 .report-container {
     font-family: 'Segoe UI', sans-serif;
     color: #333;
@@ -115,13 +225,13 @@ th { background: #e8f5e9; color: var(--primary-dark); }
     letter-spacing: 0.5px;
 }
 
+/* Cards de Recomendação (Gesso/Calcário) */
 .card-rec {
     padding: 15px;
     border-radius: 8px;
     text-align: center;
     border: 1px solid #ddd;
 }
-
 .card-rec.warning { background-color: #fff3e0; border-color: #ffe0b2; }
 .card-rec.info { background-color: #e3f2fd; border-color: #bbdefb; }
 
@@ -155,10 +265,7 @@ th { background: #e8f5e9; color: var(--primary-dark); }
     text-align: left;
 }
 
-.rec-table th {
-    background-color: #f9f9f9;
-    color: #555;
-}
+.rec-table th { background-color: #f9f9f9; color: #555; }
 
 .obs {
     font-size: 0.8rem;
@@ -166,16 +273,71 @@ th { background: #e8f5e9; color: var(--primary-dark); }
     font-style: italic;
     margin-top: 5px;
 }
+.box-res { border: 1px solid #ddd; padding: 4px; border-radius: 4px; background: #fff; }
 
-@media print {
-    .modal-content { box-shadow: none; border: none; }
-    .btn-action { display: none; }
-}
 
-/* Responsividade para celular */
-@media (max-width: 600px) {
-    .grid-2 { grid-template-columns: 1fr; }
-    .big-num { font-size: 1.6rem; }
+/* --- RESPONSIVIDADE (Celular) --- */
+@media (max-width: 768px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .btn-test { float: none; width: 100%; margin-bottom: 15px; }
+    .modal-content { width: 95%; margin: 5% auto; padding: 1rem; }
     .rec-table th, .rec-table td { display: block; width: 100%; }
     .rec-table tr { margin-bottom: 15px; display: block; border: 1px solid #ccc; }
+    .big-num { font-size: 1.6rem; }
+}
+
+/* --- ESTILOS DE IMPRESSÃO (BLINDADO) --- */
+@media print {
+    /* 1. Esconde tudo da página normal */
+    body * {
+        visibility: hidden;
+    }
+
+    /* 2. Mostra apenas o modal e seus filhos */
+    #modalRecomendacao, #modalRecomendacao * {
+        visibility: visible;
+    }
+
+    /* 3. Posiciona o modal no topo absoluto do papel */
+    #modalRecomendacao {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        background: white;
+        height: auto;
+        overflow: visible !important;
+        z-index: 9999;
+    }
+
+    /* 4. Reseta container do modal */
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: auto !important;
+    }
+
+    /* 5. Esconde elementos de UI desnecessários no papel */
+    .modal-actions, .close-modal, .btn-action, .navbar, .btn-container, ::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* 6. Formatação de texto para papel */
+    body {
+        font-size: 12pt;
+        background: white;
+        color: black;
+    }
+    
+    /* Força impressão de cores de fundo */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
 }
