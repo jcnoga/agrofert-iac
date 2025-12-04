@@ -325,124 +325,279 @@ const app = {
     },
 
     // --- MOTOR DE CÁLCULO AGRONÔMICO (IAC 100) ---
+// --- MOTOR DE CÁLCULO AGRONÔMICO (NOVO PADRÃO IAC MILHO) ---
     agroCalc: {
-        interpolacaoLinear: function(x, tabela) {
-            if (x <= tabela[0].x) return tabela[0].y;
-            if (x >= tabela[tabela.length - 1].x) return tabela[tabela.length - 1].y;
-            for (let i = 0; i < tabela.length - 1; i++) {
-                if (x >= tabela[i].x && x <= tabela[i+1].x) {
-                    const x1 = tabela[i].x, y1 = tabela[i].y;
-                    const x2 = tabela[i+1].x, y2 = tabela[i+1].y;
-                    return y1 + ((x - x1) * (y2 - y1) / (x2 - x1));
-                }
-            }
-            return 0;
-        },
+        // Funções Auxiliares
+        val: function(v) { return parseFloat(v) || 0; },
+        
+        // 1. CÁLCULO DE CALAGEM (IAC: Meta V% = 70 para Milho)
+        calcularCalagem: function(a, prnt = 80) {
+            const Ca = this.val(a.ca);
+            const Mg = this.val(a.mg); // em cmolc/dm3
+            const K = this.val(a.k);
+            const HAl = this.val(a.hal);
 
-        calcularCalagem: function(a, culturaMetaV = 60, prnt = 80) {
-            const SB = (parseFloat(a.ca)||0) + (parseFloat(a.mg)||0) + (parseFloat(a.k)||0);
-            const CTC = SB + (parseFloat(a.hal)||0);
+            const SB = Ca + Mg + K;
+            const CTC = SB + HAl;
             const V_atual = CTC > 0 ? (SB / CTC) * 100 : 0;
+            const V_meta = 70; // Regra IAC para Milho
+
             let NC = 0;
-            if (V_atual < culturaMetaV) NC = ((culturaMetaV - V_atual) * CTC) / prnt;
-            return { tons: Math.max(0, NC).toFixed(1), v_atual: V_atual.toFixed(1) };
+            if (V_atual < V_meta) {
+                NC = ((V_meta - V_atual) * CTC) / prnt;
+            }
+
+            // Regra do Magnésio: Mínimo 5 mmolc (0.5 cmolc)
+            // Se Mg < 0.5 cmolc, preferir Dolomítico.
+            const tipoCalcario = Mg < 0.5 ? "Dolomítico ou Magnesiano" : "Calcítico";
+
+            return {
+                necessidade: NC > 0,
+                toneladas: Math.max(0, NC).toFixed(1),
+                v_atual: V_atual.toFixed(1),
+                ctc: CTC.toFixed(2),
+                tipo: tipoCalcario,
+                obs: Mg < 0.5 ? "Teor de Mg baixo (< 5 mmolc). Priorizar fornecimento de Mg." : "Teor de Mg adequado."
+            };
         },
 
-        calcularGessagem: function(a) {
-            const dose = 50 * (parseFloat(a.argila)||20);
-            return { kg_ha: Math.min(dose, 2000).toFixed(0) };
+        // 2. CÁLCULO DE P e K (Baseado em Argila e Análise)
+        calcularPK_IAC: function(a) {
+            const argila = this.val(a.argila);
+            const P_resina = this.val(a.p);
+            const K_mmol = this.val(a.k) * 10; // Converte cmolc para mmolc (Regra IAC usa mmolc)
+
+            let recP = 0;
+            let recK = 0;
+
+            // Lógica de Decisão baseada na Tabela 1
+            if (argila <= 20) { // TEXTURA ARENOSA
+                // Fósforo
+                if (P_resina <= 10) recP = 80;
+                else if (P_resina <= 20) recP = 60;
+                else if (P_resina <= 30) recP = 40;
+                else recP = 20;
+
+                // Potássio
+                if (K_mmol <= 0.8) recK = 80;
+                else if (K_mmol <= 1.5) recK = 60;
+                else if (K_mmol <= 2.5) recK = 40;
+                else recK = 20;
+
+            } else if (argila <= 60) { // TEXTURA MÉDIA
+                // Fósforo
+                if (P_resina <= 10) recP = 100;
+                else if (P_resina <= 20) recP = 80;
+                else if (P_resina <= 30) recP = 60;
+                else recP = 40;
+
+                // Potássio
+                if (K_mmol <= 1.0) recK = 100;
+                else if (K_mmol <= 2.0) recK = 80;
+                else if (K_mmol <= 3.5) recK = 60;
+                else recK = 40;
+
+            } else { // TEXTURA ARGILOSA (> 60%)
+                // Fósforo
+                if (P_resina <= 10) recP = 120;
+                else if (P_resina <= 20) recP = 100;
+                else if (P_resina <= 30) recP = 80;
+                else recP = 60;
+
+                // Potássio
+                if (K_mmol <= 1.2) recK = 120;
+                else if (K_mmol <= 2.5) recK = 100;
+                else if (K_mmol <= 4.5) recK = 80;
+                else recK = 60;
+            }
+
+            return { P: recP, K: recK };
         },
 
-        calcularMilho: function(a) {
-            const prod = parseFloat(a.producao) || 10;
-            const P = parseFloat(a.p) || 0;
-            const K_mmol = (parseFloat(a.k) || 0) * 10;
+        // 3. CÁLCULO DE NITROGÊNIO (Baseado em Produtividade e Histórico)
+        calcularN_IAC: function(a) {
+            // Converte t/ha para Sacas (1 saca = 60kg = 0.06t)
+            const producaoTon = this.val(a.producao) || 6; 
+            const sacas = producaoTon / 0.06;
 
-            // N
-            const tabN = [{x:4,y:60}, {x:6,y:90}, {x:8,y:120}, {x:10,y:150}, {x:12,y:180}, {x:14,y:210}, {x:16,y:240}];
-            const N = Math.round(this.interpolacaoLinear(prod, tabN));
+            // Tabela 2 IAC
+            // Nota: Como não temos o campo "Cultivo Anterior", assumiremos "Gramíneas/Milho" 
+            // como cenário padrão (mais conservador/comum).
+            // Se fosse Leguminosa, a dose seria menor (40-60).
+            
+            let recN = 0;
 
-            // P
-            let P_base = P <= 7 ? 120 : P <= 15 ? 90 : P <= 30 ? 60 : P <= 60 ? 30 : 0;
-            const P_final = Math.max(0, P_base + ((prod - 10) * 12));
+            // Faixa de Produtividade
+            if (sacas <= 100) { // Até 6 t/ha
+                recN = 80; // Cenário Gramíneas
+            } else { // > 100 sacas (> 6 t/ha)
+                recN = 100; // Cenário Gramíneas
+            }
 
-            // K
-            let K_base = K_mmol <= 0.7 ? 120 : K_mmol <= 1.5 ? 90 : K_mmol <= 3.0 ? 60 : K_mmol <= 5.0 ? 30 : 0;
-            const K_final = Math.max(0, K_base + ((prod - 10) * 12));
-
-            return { N: N, P: Math.round(P_final), K: Math.round(K_final), prod: prod };
+            return { N: recN, sacas: sacas.toFixed(0) };
         }
     },
-
     // --- RELATÓRIO 2: IAC 100 COMPLETO ---
+// --- NOVA FUNÇÃO DE GERAÇÃO DE RELATÓRIO COMPLETO (IAC) ---
     gerarRecomendacaoCompleta: function(id) {
         const a = this.data.amostras.find(i => i.id === id);
         if(!a) return;
 
+        const argila = parseFloat(a.argila) || 0;
         const culturaNorm = a.cultura.toLowerCase().trim();
-        let rec = null, calagem = null, gessagem = null;
+        const isSafrinha = culturaNorm.includes('safrinha');
+        const isArenoso = argila <= 20;
 
-        if(culturaNorm.includes('milho')) {
-            rec = this.agroCalc.calcularMilho(a);
-            calagem = this.agroCalc.calcularCalagem(a, 60, 85);
-            gessagem = this.agroCalc.calcularGessagem(a);
-        } else {
-            alert("Recomendação automática IAC disponível apenas para 'Milho' no momento.");
-            return;
+        // 1. Executa os Cálculos Básicos
+        const calagem = this.agroCalc.calcularCalagem(a);
+        const pk = this.agroCalc.calcularPK_IAC(a);
+        const n_calc = this.agroCalc.calcularN_IAC(a);
+
+        let recN = n_calc.N;
+        let recP = pk.P;
+        let recK = pk.K;
+
+        // 2. Ajuste de Safrinha (Redução de 20% em N e K)
+        let msgSafrinha = "";
+        if (isSafrinha) {
+            recN = recN * 0.8;
+            recK = recK * 0.8;
+            msgSafrinha = "<br><small><em>(Ajuste Safrinha: Doses de N e K reduzidas em 20%)</em></small>";
         }
 
-        // Distribuição
-        const N_plantio = Math.round(rec.N / 3);
-        const N_cobertura = rec.N - N_plantio;
-        const kgUreia_p = Math.round(N_plantio / 0.45);
-        const kgUreia_c = Math.round(N_cobertura / 0.45);
-        const kgKCl_p = Math.round((rec.K / 2) / 0.60);
-        const kgKCl_c = Math.round((rec.K / 2) / 0.60);
+        // 3. Parcelamento (Regras IAC)
+        let planoAdubacao = "";
+        
+        // FÓSFORO: Sempre 100% no plantio (Sulco)
+        const P_plantio = recP;
 
+        if (isArenoso) {
+            // SOLO ARENOSO (Parcelar em 3x)
+            // N: 1/3 Plantio, 1/3 Cob 1, 1/3 Cob 2
+            // K: 1/3 Plantio, 1/3 Cob 1, 1/3 Cob 2
+            
+            const N_split = Math.round(recN / 3);
+            const K_split = Math.round(recK / 3);
+            
+            // Ajuste de sobra de arredondamento na última parcela
+            const N_rest = recN - (N_split * 2); 
+            const K_rest = recK - (K_split * 2);
+
+            planoAdubacao = `
+                <tr>
+                    <td><strong>Plantio</strong><br><small>No sulco</small></td>
+                    <td>N: ${N_split} | P₂O₅: ${P_plantio} | K₂O: ${K_split}</td>
+                </tr>
+                <tr>
+                    <td><strong>1ª Cobertura</strong><br><small>4-6 folhas (V4)</small></td>
+                    <td>N: ${N_split} | K₂O: ${K_split}</td>
+                </tr>
+                <tr>
+                    <td><strong>2ª Cobertura</strong><br><small>8-10 folhas (V8)</small></td>
+                    <td>N: ${N_rest} | K₂O: ${K_rest}</td>
+                </tr>
+            `;
+        } else {
+            // SOLO MÉDIO/ARGILOSO (Parcelar em 2x)
+            // N: 1/3 Plantio, 2/3 Cobertura
+            // K: 1/2 Plantio, 1/2 Cobertura
+            
+            const N_plantio = Math.round(recN / 3);
+            const N_cob = recN - N_plantio;
+            
+            const K_plantio = Math.round(recK / 2);
+            const K_cob = recK - K_plantio;
+
+            planoAdubacao = `
+                <tr>
+                    <td><strong>Plantio</strong><br><small>No sulco</small></td>
+                    <td>N: ${N_plantio} | P₂O₅: ${P_plantio} | K₂O: ${K_plantio}</td>
+                </tr>
+                <tr>
+                    <td><strong>Cobertura</strong><br><small>4-6 folhas (V4)</small></td>
+                    <td>N: ${N_cob} | K₂O: ${K_cob}</td>
+                </tr>
+            `;
+        }
+
+        // 4. HTML do Relatório
         const html = `
             <div class="report-container">
                 <div class="report-header">
-                    <h2>Recomendação Agronômica (IAC 100)</h2>
-                    <p><strong>Cultura:</strong> ${a.cultura} (Meta: ${rec.prod} t/ha)</p>
-                    <p><strong>Produtor:</strong> ${a.produtor} | <strong>Talhão:</strong> ${a.talhao}</p>
+                    <h2>Recomendação Agronômica (Padrão IAC)</h2>
+                    <p><strong>Cultura:</strong> ${a.cultura} ${isSafrinha ? '(Safrinha)' : '(Safra Verão)'}</p>
+                    <p><strong>Produtor:</strong> ${a.produtor} | <strong>Meta:</strong> ${n_calc.sacas} sacas/ha</p>
                 </div>
+
+                <!-- CORREÇÃO -->
                 <div class="report-section">
-                    <h3>1. Correção</h3>
+                    <h3>1. Correção do Solo</h3>
                     <div class="grid-2">
                         <div class="card-rec warning">
-                            <h4>Calagem</h4><p class="big-num">${calagem.tons} <small>t/ha</small></p>
-                            <small>Meta V%: 60%</small>
+                            <h4>Calagem</h4>
+                            <p class="big-num">${calagem.toneladas} <small>t/ha</small></p>
+                            <small>Meta V%: 70% (Milho)</small>
+                            <p class="obs">Tipo Sugerido: <strong>${calagem.tipo}</strong><br>${calagem.obs}</p>
                         </div>
                         <div class="card-rec info">
-                            <h4>Gessagem</h4><p class="big-num">${gessagem.kg_ha} <small>kg/ha</small></p>
-                            <small>Argila: ${a.argila}%</small>
+                            <h4>Orgânica (Opcional)</h4>
+                            <p>Esterco de Curral: <strong>15-20 t/ha</strong></p>
+                            <p>Ou Cama de Frango: <strong>4-6 t/ha</strong></p>
+                            <small class="obs">Pode reduzir necessidade química.</small>
                         </div>
                     </div>
                 </div>
+
+                <!-- ADUBAÇÃO -->
                 <div class="report-section">
-                    <h3>2. Adubação (N-P-K Total: ${rec.N}-${rec.P}-${rec.K})</h3>
+                    <h3>2. Adubação Mineral ${msgSafrinha}</h3>
+                    
+                    <div class="nutri-summary">
+                        <span><strong>N Total:</strong> ${Math.round(recN)} kg/ha</span>
+                        <span><strong>P₂O₅ Total:</strong> ${Math.round(recP)} kg/ha</span>
+                        <span><strong>K₂O Total:</strong> ${Math.round(recK)} kg/ha</span>
+                    </div>
+
                     <table class="rec-table">
-                        <thead><tr><th>Época</th><th>Nutrientes (kg/ha)</th><th>Produto Sugerido</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Época</th>
+                                <th>Dose Nutrientes (kg/ha)</th>
+                            </tr>
+                        </thead>
                         <tbody>
-                            <tr>
-                                <td><strong>Plantio</strong></td>
-                                <td>N: ${N_plantio} | P: ${rec.P} | K: ${Math.round(rec.K/2)}</td>
-                                <td>Uréia: ${kgUreia_p}kg <br> KCl: ${kgKCl_p}kg <br> Fonte P: Ajustar</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Cobertura</strong></td>
-                                <td>N: ${N_cobertura} | K: ${Math.round(rec.K/2)}</td>
-                                <td>Uréia: ${kgUreia_c}kg <br> KCl: ${kgKCl_c}kg</td>
-                            </tr>
+                            ${planoAdubacao}
                         </tbody>
                     </table>
+                    <p class="obs">
+                        * Argila: ${argila}% (${isArenoso ? 'Arenoso - Parcelamento em 3x' : 'Médio/Argiloso - Parcelamento em 2x'}).<br>
+                        * P no sulco. K e N divididos conforme tabela acima.
+                    </p>
+                </div>
+
+                <!-- MICRONUTRIENTES -->
+                <div class="report-section">
+                    <h3>3. Micronutrientes (Foliar)</h3>
+                    <table class="rec-table">
+                        <tr>
+                            <td><strong>Zinco (Zn)</strong></td>
+                            <td>300 – 400 g/ha</td>
+                            <td>15-20 dias após emergência (1 a 2 aplicações)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Boro (B)</strong></td>
+                            <td>150 – 200 g/ha</td>
+                            <td>25-30 dias após emergência (1 a 2 aplicações)</td>
+                        </tr>
+                    </table>
+                    <p class="obs">Dispensar se análise de solo indicar teores Altos.</p>
                 </div>
             </div>
         `;
+
         document.getElementById('conteudoRecomendacao').innerHTML = html;
         document.getElementById('modalRecomendacao').style.display = 'block';
     },
-
     // --- UTILS ---
     limparForm: function(fid, iid) { document.getElementById(fid).reset(); document.getElementById(iid).value = ''; },
     editarItem: function(col, id) {
