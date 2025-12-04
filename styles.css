@@ -443,3 +443,92 @@ tr:hover { background-color: #f9f9f9; }
         print-color-adjust: exact !important;
     }
 }
+/* ==========================================================================
+   BLOCO DE CORREÇÃO FINAL (MENU + IMPRESSÃO)
+   Cole isto no final do seu styles.css
+   ========================================================================== */
+
+/* --- 1. FORÇAR MENU A APARECER NA TELA --- */
+@media screen {
+    body {
+        padding-top: 80px !important; /* Garante que o conteúdo não esconda o menu */
+    }
+
+    .navbar {
+        /* Posição Fixa e Visível */
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 70px !important;
+        z-index: 99999 !important; /* Acima de tudo */
+        
+        /* Estilo Visual (para não ficar transparente) */
+        background-color: #ffffff !important;
+        border-bottom: 3px solid #2e7d32 !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+        padding: 0 20px !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .nav-menu { display: flex !important; gap: 15px !important; }
+    .brand { display: block !important; }
+}
+
+/* --- 2. IMPRESSÃO PERFEITA (SEM PÁGINAS EM BRANCO) --- */
+@media print {
+    /* TRUQUE MÁGICO: Remove tudo do fluxo da página, EXCETO o modal */
+    body > :not(#modalRecomendacao) {
+        display: none !important;
+    }
+
+    /* Reseta o container principal */
+    html, body {
+        height: auto !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+    }
+
+    /* Posiciona o relatório */
+    #modalRecomendacao {
+        display: block !important;
+        position: relative !important; /* Relative evita quebra de página errada */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        border: none !important;
+        z-index: 10000 !important;
+    }
+
+    /* Garante que o conteúdo interno seja visível */
+    #modalRecomendacao * {
+        visibility: visible !important;
+    }
+
+    /* Remove botões e barras de rolagem do papel */
+    .modal-actions, .close-modal, .btn-action, .btn-rec, ::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    /* Ajuste da folha A4 */
+    .modal-content {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Garante cores de fundo (tabelas e cabeçalhos) */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
