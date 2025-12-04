@@ -347,38 +347,72 @@ this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
         }
     },
 
-    preencherTeste: function() {
-        const rand = (min, max) => (Math.random() * (max - min) + min).toFixed(2);
-        const set = (id, val) => { if(document.getElementById(id)) document.getElementById(id).value = val; };
+// --- SUBSTITUA A FUNÇÃO preencherTeste NO SEU APP.JS ---
 
-        set('samp_produtor', "Produtor Teste");
-        set('samp_propriedade', "Fazenda Boa Vista");
-        set('samp_cidade', "Uberlândia/MG");
-        set('samp_talhao', "T-99");
-        set('samp_protocolo', "LAB-1234");
-        if(document.getElementById('samp_data')) document.getElementById('samp_data').valueAsDate = new Date();
-        set('samp_producao', "12");
-        set('samp_esp_linha', "0.8");
-        set('samp_esp_cova', "0.2");
-        set('samp_ph', rand(4.5, 6.5));
-        set('samp_mo', rand(15, 45));
-        set('samp_p', rand(5, 30));
-        set('samp_s', rand(2, 12));
-        set('samp_ca', rand(1.0, 4.0));
-        set('samp_mg', rand(0.5, 1.5));
-        set('samp_k', rand(0.1, 0.6));
-        set('samp_hal', rand(1.5, 4.5));
-        set('samp_al', rand(0.0, 0.8));
-        set('samp_argila', Math.floor(rand(15, 60)));
-        set('samp_areia', Math.floor(rand(10, 50)));
-        set('samp_zn', rand(0.5, 3.0));
-        set('samp_b', rand(0.1, 0.6));
-        set('samp_mn', rand(2.0, 15.0));
-        set('samp_cu', rand(0.2, 2.0));
-        set('samp_fe', rand(15, 60));
-        set('samp_mo_micro', rand(0.01, 0.1));
-    },
+preencherTeste: function() {
+    // Função auxiliar para gerar números com casas decimais fixas
+    // Ex: rand(5, 10, 2) gera algo como 7.42
+    const rand = (min, max, dec = 2) => (Math.random() * (max - min) + min).toFixed(dec);
+    
+    // Função auxiliar para definir valor no input
+    const set = (id, val) => { 
+        const el = document.getElementById(id); 
+        if(el) el.value = val; 
+    };
 
+    // 1. DADOS GERAIS (Cenário: Soja no Cerrado)
+    const produtores = ["João da Silva", "Fazenda Santa Maria", "Agropecuária Boi Verde", "José Santos"];
+    set('samp_produtor', produtores[Math.floor(Math.random() * produtores.length)]);
+    set('samp_propriedade', "Gleba A - Talhão " + Math.floor(Math.random() * 20));
+    set('samp_cidade', "Rio Verde/GO");
+    set('samp_protocolo', "LAB-" + Math.floor(Math.random() * 10000));
+    set('samp_talhao', "T-" + Math.floor(Math.random() * 50));
+    
+    // Data de hoje
+    if(document.getElementById('samp_data')) {
+        document.getElementById('samp_data').valueAsDate = new Date();
+    }
+
+    // Cultura: Soja
+    set('samp_cultura', "Soja"); 
+    set('samp_producao', "3.8"); // ~63 sacas/ha (Produtividade realista)
+    set('samp_esp_linha', "0.50"); // 50cm entre linhas
+    set('samp_esp_cova', "0.20");  // 20cm entre plantas
+
+    // 2. QUÍMICA (Solo levemente ácido, precisando de correção)
+    // pH entre 5.0 e 5.8
+    const ph = parseFloat(rand(5.0, 5.8, 1)); 
+    set('samp_ph', ph);
+
+    // Se o pH é baixo, geralmente tem Alumínio (0.2 a 0.8)
+    // Se o pH for melhor (>5.5), o Alumínio é baixo ou zero
+    const al = ph < 5.5 ? rand(0.2, 0.8, 2) : "0.00";
+    set('samp_al', al);
+
+    set('samp_mo', rand(25, 38, 1));  // Matéria Orgânica: 25 a 38 g/dm³
+    set('samp_p', rand(8, 25, 1));    // Fósforo: 8 a 25 mg/dm³
+    set('samp_s', rand(4, 12, 1));    // Enxofre: 4 a 12 mg/dm³
+
+    set('samp_k', rand(0.15, 0.35, 2)); // Potássio
+    set('samp_ca', rand(1.5, 3.5, 2));  // Cálcio
+    set('samp_mg', rand(0.5, 1.2, 2));  // Magnésio
+    set('samp_hal', rand(2.5, 5.5, 2)); // Acidez Potencial (H+Al)
+
+    // 3. FÍSICA (Solo médio/argiloso)
+    const argila = Math.floor(rand(35, 60, 0));
+    const areia = Math.floor(rand(15, 40, 0));
+    // (O resto seria silte, não precisamos calcular para o form)
+    set('samp_argila', argila);
+    set('samp_areia', areia);
+
+    // 4. MICRONUTRIENTES (Valores típicos)
+    set('samp_zn', rand(0.8, 2.5, 2));  // Zinco
+    set('samp_b', rand(0.15, 0.45, 2)); // Boro
+    set('samp_mn', rand(4.0, 15.0, 1)); // Manganês
+    set('samp_cu', rand(0.5, 1.5, 2));  // Cobre
+    set('samp_fe', rand(20, 60, 1));    // Ferro (geralmente alto)
+    set('samp_mo_micro', rand(0.01, 0.05, 3)); // Molibdênio (valor muito baixo)
+},
     updateDashboard: function() {
         if(document.getElementById('dashTotalAmostras')) document.getElementById('dashTotalAmostras').textContent = this.data.amostras.length;
         if(document.getElementById('dashTotalAgronomos')) document.getElementById('dashTotalAgronomos').textContent = this.data.agronomos.length;
