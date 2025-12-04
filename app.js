@@ -439,6 +439,117 @@ const app = {
     },
     // --- RELATÓRIO 2: IAC 100 COMPLETO ---
 // --- NOVA FUNÇÃO DE GERAÇÃO DE RELATÓRIO COMPLETO (IAC) ---
+// --- MOTOR DE CÁLCULO AGRONÔMICO (IAC - TABELAS ESTRITAS) ---
+    agroCalc: {
+        val: function(v) { return parseFloat(v) || 0; },
+
+        // 1. CALAGEM (V% = 70 para Milho)
+        calcularCalagem: function(a, prnt = 80) {
+            const SB = this.val(a.ca) + this.val(a.mg) + this.val(a.k);
+            const CTC = SB + this.val(a.hal);
+            const V_atual = CTC > 0 ? (SB / CTC) * 100 : 0;
+            
+            // Fórmula: NC = (V2 - V1) * CTC / PRNT
+            const V_meta = 70; 
+            let NC = 0;
+            
+            if (V_atual < V_meta) {
+                NC = ((V_meta - V_atual) * CTC) / prnt;
+            }
+
+            // Critério do Magnésio (Mg < 5 mmolc ou 0.5 cmolc)
+            const tipo = this.val(a.mg) < 0.5 ? "Dolomítico (Rico em Mg)" : "Calcítico";
+
+            return {
+                toneladas: Math.max(0, NC).toFixed(1),
+                v_atual: V_atual.toFixed(1),
+                tipo: tipo
+            };
+        },
+
+        // 2. NITROGÊNIO (TABELA 2 - SEM INTERPOLAÇÃO)
+        calcularN_Tabela: function(a) {
+            // Conversão: t/ha para sacas de 60kg
+            const prodTon = this.val(a.producao) || 6; 
+            const sacas = prodTon / 0.06;
+            
+            // Cenário Padrão: Cultivo anterior Gramíneas (Braquiária/Milheto)
+            // Tabela 2:
+            // <= 100 sacas: 80 kg/ha
+            // > 100 sacas: 100 kg/ha
+            
+            let doseN = 0;
+            if (sacas <= 100) {
+                doseN = 80;
+            } else {
+                doseN = 100;
+            }
+
+            return { N: doseN, sacas: sacas.toFixed(0) };
+        },
+
+        // 3. FÓSFORO E POTÁSSIO (TABELA 1 - FAIXAS ESTRITAS)
+        calcularPK_Tabela: function(a) {
+            const argila = this.val(a.argila);
+            const P = this.val(a.p);           // mg/dm3
+            const K_mmol = this.val(a.k) * 10; // Converte cmolc para mmolc
+
+            let recP = 0;
+            let recK = 0;
+
+            // --- SELEÇÃO PELA TEXTURA (ARGILA) ---
+            
+            if (argila <= 20) { 
+                // === TEXTURA ARENOSA (<= 20%) ===
+                
+                // Fósforo (P)
+                if (P <= 10) recP = 80;
+                else if (P <= 20) recP = 60;
+                else if (P <= 30) recP = 40;
+                else recP = 20; // > 30
+
+                // Potássio (K)
+                if (K_mmol <= 0.8) recK = 80;
+                else if (K_mmol <= 1.5) recK = 60;
+                else if (K_mmol <= 2.5) recK = 40;
+                else recK = 20; // > 2.5
+
+            } else if (argila <= 60) {
+                // === TEXTURA MÉDIA (21 - 60%) ===
+                
+                // Fósforo (P)
+                if (P <= 10) recP = 100;
+                else if (P <= 20) recP = 80;
+                else if (P <= 30) recP = 60;
+                else recP = 40; // > 30
+
+                // Potássio (K)
+                if (K_mmol <= 1.0) recK = 100;
+                else if (K_mmol <= 2.0) recK = 80;
+                else if (K_mmol <= 3.5) recK = 60;
+                else recK = 40; // > 3.5
+
+            } else {
+                // === TEXTURA ARGILOSA (> 60%) ===
+                
+                // Fósforo (P)
+                if (P <= 10) recP = 120;
+                else if (P <= 20) recP = 100;
+                else if (P <= 30) recP = 80;
+                else recP = 60; // > 30
+
+                // Potássio (K)
+                if (K_mmol <= 1.2) recK = 120;
+                else if (K_mmol <= 2.5) recK = 100;
+                else if (K_mmol <= 4.5) recK = 80;
+                else recK = 60; // > 4.5
+            }
+
+            return { P: recP, K: recK };
+        }
+    },
+
+    // --- GERAÇÃO DO RELATÓRIO (COM REGRAS DE PARCELAMENTO) ---
     gerarRecomendacaoCompleta: function(id) {
         const a = this.data.amostras.find(i => i.id === id);
         if(!a) return;
@@ -448,78 +559,126 @@ const app = {
         const isSafrinha = culturaNorm.includes('safrinha');
         const isArenoso = argila <= 20;
 
-        // 1. Executa os Cálculos Básicos
+        // 1. Cálculos baseados nas tabelas
         const calagem = this.agroCalc.calcularCalagem(a);
-        const pk = this.agroCalc.calcularPK_IAC(a);
-        const n_calc = this.agroCalc.calcularN_IAC(a);
+        const pk = this.agroCalc.calcularPK_Tabela(a);
+        const n_calc = this.agroCalc.calcularN_Tabela(a);
 
         let recN = n_calc.N;
         let recP = pk.P;
         let recK = pk.K;
 
-        // 2. Ajuste de Safrinha (Redução de 20% em N e K)
-        let msgSafrinha = "";
+        // 2. Ajuste Safrinha (-20%)
+        let avisoSafrinha = "";
         if (isSafrinha) {
-            recN = recN * 0.8;
-            recK = recK * 0.8;
-            msgSafrinha = "<br><small><em>(Ajuste Safrinha: Doses de N e K reduzidas em 20%)</em></small>";
+            recN = Math.round(recN * 0.8);
+            recK = Math.round(recK * 0.8);
+            avisoSafrinha = "<br><span style='color:red; font-size:0.8em'>* Doses de N e K reduzidas em 20% (Safrinha)</span>";
         }
 
-        // 3. Parcelamento (Regras IAC)
-        let planoAdubacao = "";
-        
-        // FÓSFORO: Sempre 100% no plantio (Sulco)
-        const P_plantio = recP;
+        // 3. Regras de Parcelamento (Texto 5.1 e Observações Tabela 1)
+        let htmlTabela = "";
+        const P_plantio = recP; // Todo P no sulco
 
         if (isArenoso) {
-            // SOLO ARENOSO (Parcelar em 3x)
-            // N: 1/3 Plantio, 1/3 Cob 1, 1/3 Cob 2
-            // K: 1/3 Plantio, 1/3 Cob 1, 1/3 Cob 2
+            // == ARENOSO: PARCELAR EM 3 VEZES ==
+            // N: 1/3 Plantio, 1/3 Cob (V4), 1/3 Cob (V8)
+            // K: 1/3 Plantio, 1/3 Cob (V4), 1/3 Cob (V8)
             
-            const N_split = Math.round(recN / 3);
-            const K_split = Math.round(recK / 3);
-            
-            // Ajuste de sobra de arredondamento na última parcela
-            const N_rest = recN - (N_split * 2); 
-            const K_rest = recK - (K_split * 2);
+            const N_p = Math.round(recN / 3);
+            const K_p = Math.round(recK / 3);
+            const N_rest = recN - (N_p * 2); // O que sobra vai na última
+            const K_rest = recK - (K_p * 2);
 
-            planoAdubacao = `
+            htmlTabela = `
                 <tr>
                     <td><strong>Plantio</strong><br><small>No sulco</small></td>
-                    <td>N: ${N_split} | P₂O₅: ${P_plantio} | K₂O: ${K_split}</td>
+                    <td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td>
                 </tr>
                 <tr>
-                    <td><strong>1ª Cobertura</strong><br><small>4-6 folhas (V4)</small></td>
-                    <td>N: ${N_split} | K₂O: ${K_split}</td>
+                    <td><strong>1ª Cobertura</strong><br><small>V4-V6 (30 dias)</small></td>
+                    <td>N: <strong>${N_p}</strong> | K₂O: <strong>${K_p}</strong></td>
                 </tr>
                 <tr>
-                    <td><strong>2ª Cobertura</strong><br><small>8-10 folhas (V8)</small></td>
-                    <td>N: ${N_rest} | K₂O: ${K_rest}</td>
+                    <td><strong>2ª Cobertura</strong><br><small>V8-V10 (50 dias)</small></td>
+                    <td>N: <strong>${N_rest}</strong> | K₂O: <strong>${K_rest}</strong></td>
                 </tr>
             `;
         } else {
-            // SOLO MÉDIO/ARGILOSO (Parcelar em 2x)
-            // N: 1/3 Plantio, 2/3 Cobertura
-            // K: 1/2 Plantio, 1/2 Cobertura
+            // == TEXTURA MÉDIA/ARGILOSA ==
+            // N: 1/3 Plantio, 2/3 Cobertura (V4)
+            // K: 1/2 Plantio, 1/2 Cobertura (V4)
             
-            const N_plantio = Math.round(recN / 3);
-            const N_cob = recN - N_plantio;
+            const N_p = Math.round(recN / 3);
+            const N_c = recN - N_p;
             
-            const K_plantio = Math.round(recK / 2);
-            const K_cob = recK - K_plantio;
+            const K_p = Math.round(recK / 2);
+            const K_c = recK - K_p;
 
-            planoAdubacao = `
+            htmlTabela = `
                 <tr>
                     <td><strong>Plantio</strong><br><small>No sulco</small></td>
-                    <td>N: ${N_plantio} | P₂O₅: ${P_plantio} | K₂O: ${K_plantio}</td>
+                    <td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td>
                 </tr>
                 <tr>
-                    <td><strong>Cobertura</strong><br><small>4-6 folhas (V4)</small></td>
-                    <td>N: ${N_cob} | K₂O: ${K_cob}</td>
+                    <td><strong>Cobertura</strong><br><small>V4-V6 (Afilhamento)</small></td>
+                    <td>N: <strong>${N_c}</strong> | K₂O: <strong>${K_c}</strong></td>
                 </tr>
             `;
         }
 
+        // 4. Montar HTML
+        const html = `
+            <div class="report-container">
+                <div class="report-header">
+                    <h2>Recomendação Oficial (IAC Tabelado)</h2>
+                    <p><strong>Cultura:</strong> ${a.cultura} ${isSafrinha ? '(Safrinha)' : ''}</p>
+                    <p><strong>Meta:</strong> ${n_calc.sacas} sacas/ha | <strong>Argila:</strong> ${argila}% (${isArenoso ? 'Arenoso' : 'Médio/Argiloso'})</p>
+                </div>
+
+                <div class="report-section">
+                    <h3>1. Correção</h3>
+                    <div class="grid-2">
+                        <div class="card-rec warning">
+                            <h4>Calagem</h4>
+                            <p class="big-num">${calagem.toneladas} <small>t/ha</small></p>
+                            <small>Meta V% = 70</small>
+                            <p class="obs">Tipo: ${calagem.tipo}</p>
+                        </div>
+                        <div class="card-rec info">
+                            <h4>Orgânica</h4>
+                            <p>Esterco Curral: <strong>15-20 t/ha</strong></p>
+                            <small>Ou Cama de Frango: 4-6 t/ha</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-section">
+                    <h3>2. Adubação Mineral (kg/ha) ${avisoSafrinha}</h3>
+                    <div class="nutri-summary">
+                        <span>N Total: <strong>${recN}</strong></span>
+                        <span>P₂O₅ Total: <strong>${recP}</strong></span>
+                        <span>K₂O Total: <strong>${recK}</strong></span>
+                    </div>
+                    <table class="rec-table">
+                        <thead><tr><th>Época</th><th>Doses (Elemento Puro)</th></tr></thead>
+                        <tbody>${htmlTabela}</tbody>
+                    </table>
+                </div>
+
+                <div class="report-section">
+                    <h3>3. Micronutrientes (Foliar)</h3>
+                    <table class="rec-table">
+                        <tr><td><strong>Zinco (Zn)</strong></td><td>300-400 g/ha</td><td>15-20 DAE</td></tr>
+                        <tr><td><strong>Boro (B)</strong></td><td>150-200 g/ha</td><td>25-30 DAE</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('conteudoRecomendacao').innerHTML = html;
+        document.getElementById('modalRecomendacao').style.display = 'block';
+    },
         // 4. HTML do Relatório
         const html = `
             <div class="report-container">
