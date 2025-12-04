@@ -1,4 +1,7 @@
-/* --- ARQUIVO: styles.css (COMPLETO) --- */
+/* ==========================================================================
+   AGROFERT - ESTILOS GERAIS
+   Versão: Final Corrigida (Menu + Impressão + Relatórios)
+   ========================================================================== */
 
 :root {
     --primary-color: #2e7d32;   /* Verde Padrão */
@@ -7,8 +10,8 @@
     --bg-color: #eef2f6;        /* Fundo Cinza Claro */
     --card-bg: #ffffff;         /* Fundo Branco */
     --text-color: #333;
-    --nav-height: 70px;
-    --radius: 12px;
+    --nav-height: 70px;         /* Altura do Menu */
+    --radius: 8px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -16,106 +19,75 @@
 body { 
     background-color: var(--bg-color); 
     color: var(--text-color); 
-    padding-top: var(--nav-height); /* Espaço para o menu não cobrir o conteúdo */
+    /* CRUCIAL: Empurra o conteúdo para baixo para o menu não cobrir o título */
+    padding-top: 90px; 
 }
 
-/* --- NAVBAR (MENU SUPERIOR) --- */
-/* --- CORREÇÃO DE EMERGÊNCIA DO MENU --- */
-
-body {
-    /* Empurra o conteúdo para baixo para não ficar escondido atrás do menu */
-    padding-top: 80px !important; 
-}
-
+/* ==========================================================================
+   1. NAVBAR (MENU SUPERIOR) - BLINDADO
+   ========================================================================== */
 .navbar {
-    /* Força o menu a ficar fixo no topo */
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 70px !important;
+    position: fixed;        /* Cola no topo */
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: var(--nav-height); 
     
-    /* Garante que ele fique NA FRENTE de tudo (inclusive modais) */
-    z-index: 99999 !important; 
+    background-color: #ffffff; 
+    border-bottom: 3px solid var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     
-    /* Garante cor e borda para você enxergar */
-    background-color: #ffffff !important;
-    border-bottom: 3px solid #2e7d32 !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+    display: flex; 
+    justify-content: space-between;
+    align-items: center; 
+    padding: 0 20px; 
     
-    display: flex !important;
-    align-items: center !important;
-    padding: 0 20px !important;
-}
-
-.nav-menu {
-    display: flex !important;
-    gap: 15px !important;
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.nav-link {
-    cursor: pointer !important;
-    color: #333 !important;
-    font-weight: 600 !important;
-    padding: 8px 12px !important;
-    text-decoration: none !important;
-}
-
-.nav-link:hover {
-    color: #2e7d32 !important;
-    background-color: #e8f5e9 !important;
-    border-radius: 4px !important;
-}
-
-/* Garante que o título AgroFert apareça */
-.brand {
-    font-size: 1.5rem !important;
-    font-weight: bold !important;
-    color: #1b5e20 !important;
-    margin-right: auto !important; /* Empurra os links para a direita */
-    display: block !important;
+    z-index: 10000; /* Garante que fique acima de tudo */
 }
 
 .brand { 
     font-size: 1.5rem; 
-    font-weight: 700; 
+    font-weight: 800; 
     color: var(--primary-dark); 
     cursor: pointer; 
-    margin-right: 20px;
+    display: flex;
+    align-items: center;
 }
 .brand span { color: var(--primary-color); }
 
 .nav-menu { 
     display: flex; 
     list-style: none; 
-    gap: 1rem; 
-    overflow-x: auto; /* Rolagem lateral no celular */
-    padding-bottom: 5px;
-    -webkit-overflow-scrolling: touch;
+    gap: 15px; 
+    overflow-x: auto; /* Permite rolagem no celular */
+    padding-bottom: 0;
+    margin: 0;
 }
 
 .nav-link { 
     text-decoration: none; 
-    color: #666; 
-    font-weight: 500; 
+    color: #555; 
+    font-weight: 600; 
+    font-size: 0.9rem;
     cursor: pointer; 
     padding: 8px 12px; 
     border-radius: 4px;
-    transition: 0.2s;
+    transition: all 0.2s;
+    white-space: nowrap; /* Não quebra linha */
 }
+
 .nav-link:hover, .nav-link.active { 
     color: var(--primary-color); 
     background: #e8f5e9; 
 }
 
-/* --- LAYOUT GERAL --- */
+/* ==========================================================================
+   2. LAYOUT E CARDS
+   ========================================================================== */
 .view-section { 
     display: none; /* Esconde todas as telas por padrão */
-    padding: 2rem; 
-    max-width: 1100px; 
+    padding: 1rem; 
+    max-width: 1200px; 
     margin: 0 auto; 
     animation: fadeIn 0.4s; 
 }
@@ -123,113 +95,142 @@ body {
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Cards */
 .card { 
     background: var(--card-bg); 
     border-radius: var(--radius); 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
     padding: 2rem; 
     margin-bottom: 2rem; 
+    border: 1px solid #e0e0e0;
 }
+
 .hero-card { 
     background: linear-gradient(135deg, var(--primary-dark), var(--primary-color)); 
     color: white; 
     text-align: center; 
-    padding: 3rem; 
+    padding: 3rem 1rem; 
     border-radius: var(--radius); 
     margin-bottom: 2rem; 
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
 }
 
-/* Dashboard */
+/* Dashboard Cards */
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
-.dash-card { text-align: center; cursor: pointer; border-bottom: 4px solid var(--primary-color); transition: transform 0.2s; }
+.dash-card { 
+    background: white;
+    text-align: center; 
+    cursor: pointer; 
+    border-bottom: 4px solid var(--primary-color); 
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s; 
+}
 .dash-card:hover { transform: translateY(-5px); }
-.dash-card.soil { border-color: var(--soil-color); }
 .dash-card h3 { font-size: 2.5rem; color: var(--primary-color); margin-bottom: 5px; }
-.dash-card.soil h3 { color: var(--soil-color); }
 
-/* --- FORMULÁRIOS (GRIDS) --- */
+/* ==========================================================================
+   3. FORMULÁRIOS
+   ========================================================================== */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
 .mt-1 { margin-top: 1rem; } 
 .mt-2 { margin-top: 2rem; }
 
 .input-wrapper { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: 0.85rem; font-weight: 700; color: var(--primary-dark); }
+label { font-size: 0.85rem; font-weight: 700; color: #444; }
 
 input, select { 
     padding: 0.7rem; 
-    border: 2px solid #ddd; 
-    border-radius: 6px; 
+    border: 1px solid #ccc; 
+    border-radius: 4px; 
     font-size: 0.95rem; 
     background: #fafafa; 
     outline: none; 
     width: 100%; 
     transition: 0.2s; 
 }
-input:focus, select:focus { border-color: var(--primary-color); background: #fff; }
+input:focus, select:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1); }
 
-/* --- BOTÕES --- */
+/* ==========================================================================
+   4. BOTÕES E TABELAS
+   ========================================================================== */
 .btn-container { display: flex; gap: 10px; flex-wrap: wrap; }
-.btn-action { padding: 0.8rem 1.5rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+
+.btn-action { 
+    padding: 0.7rem 1.5rem; 
+    border: none; 
+    border-radius: 4px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: 0.2s; 
+}
 .btn-save { background: var(--primary-color); color: white; }
 .btn-save:hover { background: var(--primary-dark); }
 .btn-cancel { background: #fff; border: 1px solid #ddd; color: #666; }
 .btn-test { float: right; background: #673ab7; color: white; padding: 6px 12px; border-radius: 4px; border: none; cursor: pointer; font-size: 0.8rem; }
 
-/* Botões pequenos dentro da tabela */
+/* Botões da Tabela */
 .btn-rec {
     border: none;
     background: #2e7d32;
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.1s;
 }
+.btn-rec:hover { transform: scale(1.1); }
 
-/* --- TABELAS --- */
-.table-container { overflow-x: auto; margin-top: 1rem; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+/* Tabelas */
+.table-container { overflow-x: auto; margin-top: 1rem; background: white; border-radius: var(--radius); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+table { width: 100%; border-collapse: collapse; min-width: 700px; }
 th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; vertical-align: middle; }
-th { background: #e8f5e9; color: var(--primary-dark); font-weight: 600; }
-tr:hover { background-color: #f9f9f9; }
+th { background: #f8f9fa; color: #444; font-weight: 700; border-bottom: 2px solid #e0e0e0; }
+tr:hover { background-color: #f1f8e9; }
 
-/* --- MODAL --- */
+/* ==========================================================================
+   5. MODAL (POPUP)
+   ========================================================================== */
 .modal { 
     display: none; 
     position: fixed; 
-    z-index: 2000; /* Acima do Navbar */
+    z-index: 20000; /* Acima do Menu */
     left: 0; 
     top: 0; 
     width: 100%; 
     height: 100%; 
-    background: rgba(0,0,0,0.5); 
+    background: rgba(0,0,0,0.6); 
     overflow-y: auto;
+    backdrop-filter: blur(2px);
 }
 .modal-content { 
     background: #fff; 
-    margin: 2% auto; 
-    padding: 2rem; 
+    margin: 3% auto; 
+    padding: 2.5rem; 
     width: 90%; 
     max-width: 900px; 
     border-radius: var(--radius); 
     position: relative;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
 }
 .close-modal { 
     position: absolute;
     right: 20px;
-    top: 10px;
+    top: 15px;
     font-size: 2rem; 
     cursor: pointer; 
     color: #999;
 }
+.close-modal:hover { color: #f44336; }
+
 .modal-actions {
     margin-top: 20px;
     border-top: 1px solid #eee;
@@ -239,264 +240,100 @@ tr:hover { background-color: #f9f9f9; }
     gap: 10px;
 }
 
-/* --- ESTILOS DO RELATÓRIO DE RECOMENDAÇÃO (IAC & COMPACTO) --- */
-.report-container {
-    font-family: 'Segoe UI', sans-serif;
-    color: #333;
-    max-width: 100%;
-}
+/* ==========================================================================
+   6. ESTILOS DO RELATÓRIO (IAC & COMPACTO)
+   ========================================================================== */
+.report-container { font-family: 'Segoe UI', Tahoma, sans-serif; color: #333; }
 
 .report-header {
-    background: #e8f5e9;
-    padding: 15px;
-    border-left: 5px solid var(--primary-color);
+    background: #f1f8e9;
+    padding: 20px;
+    border-left: 6px solid var(--primary-color);
     margin-bottom: 20px;
     border-radius: 4px;
 }
+.report-header h2 { margin: 0 0 10px 0; color: var(--primary-dark); }
+.report-header p { margin: 5px 0; font-size: 0.95rem; }
 
-.report-section {
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
-}
-
-.report-section h3 {
-    color: var(--primary-dark);
-    margin-bottom: 15px;
+.report-section { margin-bottom: 30px; page-break-inside: avoid; } /* Evita quebra no meio da tabela */
+.report-section h3 { 
+    border-bottom: 2px solid #eee; 
+    padding-bottom: 8px; 
+    margin-bottom: 15px; 
+    color: var(--primary-color);
+    font-size: 1.1rem;
     text-transform: uppercase;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
 }
 
-/* Cards de Recomendação (Gesso/Calcário) */
+/* Cards de Recomendação (Calagem/Gessagem) */
 .card-rec {
     padding: 15px;
-    border-radius: 8px;
+    border-radius: 6px;
     text-align: center;
     border: 1px solid #ddd;
+    background: white;
 }
-.card-rec.warning { background-color: #fff3e0; border-color: #ffe0b2; }
-.card-rec.info { background-color: #e3f2fd; border-color: #bbdefb; }
+.card-rec.warning { background-color: #fff8e1; border-color: #ffe0b2; color: #f57f17; }
+.card-rec.info { background-color: #e3f2fd; border-color: #bbdefb; color: #1565c0; }
 
-.big-num {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #333;
-    margin: 5px 0;
-}
+.big-num { font-size: 1.8rem; font-weight: 800; margin: 10px 0; color: #333; }
 
-.nutri-summary {
-    display: flex;
-    gap: 15px;
-    background: #f5f5f5;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-    font-size: 0.9rem;
-}
+/* Tabela de Recomendação */
+.rec-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+.rec-table th { background: #eeeeee; color: #333; border: 1px solid #ccc; padding: 8px; }
+.rec-table td { border: 1px solid #ccc; padding: 8px; vertical-align: top; }
 
-.rec-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
+/* Boxes do Relatório Compacto */
+.box-res { 
+    border: 1px solid #e0e0e0; 
+    padding: 8px; 
+    border-radius: 4px; 
+    background: #fff; 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
-.rec-table th, .rec-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
-
-.rec-table th { background-color: #f9f9f9; color: #555; }
-
-.obs {
-    font-size: 0.8rem;
-    color: #666;
-    font-style: italic;
-    margin-top: 5px;
-}
-.box-res { border: 1px solid #ddd; padding: 4px; border-radius: 4px; background: #fff; }
-
-
-/* --- RESPONSIVIDADE (Celular) --- */
-@media (max-width: 768px) {
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-    .btn-test { float: none; width: 100%; margin-bottom: 15px; }
-    .modal-content { width: 95%; margin: 5% auto; padding: 1rem; }
-    .rec-table th, .rec-table td { display: block; width: 100%; }
-    .rec-table tr { margin-bottom: 15px; display: block; border: 1px solid #ccc; }
-    .big-num { font-size: 1.6rem; }
-}
-
-/* --- ESTILOS DE IMPRESSÃO (BLINDADO) --- */
-/* --- CORREÇÃO FINAL DE IMPRESSÃO (SEM PÁGINAS EM BRANCO) --- */
-@media print {
-    /* 1. Oculta e remove do layout TUDO que não for o modal */
-    /* Isso garante que o site ao fundo tenha altura ZERO */
-    body > :not(#modalRecomendacao) {
-        display: none !important;
-    }
-
-    /* 2. Reseta o corpo da página para evitar margens estranhas */
-    html, body {
-        height: auto !important;
-        overflow: visible !important;
-        background: white !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    /* 3. Configura o Modal para ser o único elemento do fluxo */
-    #modalRecomendacao {
-        display: block !important;
-        position: relative !important; /* Relative flui melhor que absolute para múltiplas páginas */
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        background: white !important;
-        height: auto !important;
-        overflow: visible !important;
-    }
-
-    /* 4. Garante que o conteúdo interno do modal apareça */
-    #modalRecomendacao * {
-        visibility: visible !important;
-    }
-    
-    /* 5. Ajustes internos do relatório para caber na A4 */
-    .modal-content {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 20px !important; /* Margem interna suave */
-        box-shadow: none !important;
-        border: none !important;
-    }
-
-    /* 6. Esconde botões de ação (Fechar, Imprimir) */
-    .modal-actions, .close-modal, .btn-rec, .btn-action {
-        display: none !important;
-    }
-
-    /* 7. Configurações de página (Margens da impressora) */
-    @page {
-        margin: 1.5cm; /* Margem padrão A4 */
-        size: auto;
-    }
-
-    /* 8. Força impressão de cores de fundo (Gráficos e Tabelas) */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-}
-
-    /* 2. Mostra apenas o modal e seus filhos */
-    #modalRecomendacao, #modalRecomendacao * {
-        visibility: visible;
-    }
-
-    /* 3. Posiciona o modal no topo absoluto do papel */
-    #modalRecomendacao {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        background: white;
-        height: auto;
-        overflow: visible !important;
-        z-index: 9999;
-    }
-
-    /* 4. Reseta container do modal */
-    .modal-content {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        box-shadow: none !important;
-        height: auto !important;
-    }
-
-    /* 5. Esconde elementos de UI desnecessários no papel */
-    .modal-actions, .close-modal, .btn-action, .navbar, .btn-container, ::-webkit-scrollbar {
-        display: none !important;
-    }
-
-    /* 6. Formatação de texto para papel */
-    body {
-        font-size: 12pt;
-        background: white;
-        color: black;
-    }
-    
-    /* Força impressão de cores de fundo */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-    }
-}
 /* ==========================================================================
-   BLOCO DE CORREÇÃO FINAL (MENU + IMPRESSÃO)
-   Cole isto no final do seu styles.css
+   7. RESPONSIVIDADE (CELULAR)
    ========================================================================== */
-
-/* --- 1. FORÇAR MENU A APARECER NA TELA --- */
-@media screen {
-    body {
-        padding-top: 80px !important; /* Garante que o conteúdo não esconda o menu */
+@media (max-width: 768px) {
+    body { padding-top: 80px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .btn-test { width: 100%; margin-bottom: 10px; }
+    .modal-content { width: 95%; padding: 1rem; margin: 5% auto; }
+    
+    /* Tabelas Responsivas */
+    .rec-table, .rec-table tbody, .rec-table tr, .rec-table td { display: block; width: 100%; }
+    .rec-table thead { display: none; }
+    .rec-table tr { margin-bottom: 15px; border: 1px solid #ccc; }
+    .rec-table td { text-align: right; padding-left: 50%; position: relative; }
+    .rec-table td::before { 
+        content: attr(data-label); 
+        position: absolute; left: 10px; width: 45%; text-align: left; font-weight: bold; 
     }
-
-    .navbar {
-        /* Posição Fixa e Visível */
-        display: flex !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        width: 100% !important;
-        height: 70px !important;
-        z-index: 99999 !important; /* Acima de tudo */
-        
-        /* Estilo Visual (para não ficar transparente) */
-        background-color: #ffffff !important;
-        border-bottom: 3px solid #2e7d32 !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
-        padding: 0 20px !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-
-    .nav-menu { display: flex !important; gap: 15px !important; }
-    .brand { display: block !important; }
 }
 
-/* --- 2. IMPRESSÃO PERFEITA (SEM PÁGINAS EM BRANCO) --- */
+/* ==========================================================================
+   8. IMPRESSÃO (CORRIGIDO PARA NÃO TER PÁGINAS EM BRANCO)
+   ========================================================================== */
 @media print {
-    /* TRUQUE MÁGICO: Remove tudo do fluxo da página, EXCETO o modal */
+    /* 1. Remove TUDO do fluxo, exceto o modal */
     body > :not(#modalRecomendacao) {
         display: none !important;
     }
 
-    /* Reseta o container principal */
+    /* 2. Reseta o layout da página */
     html, body {
-        height: auto !important;
-        background: white !important;
         margin: 0 !important;
         padding: 0 !important;
+        height: auto !important;
+        background: white !important;
         overflow: visible !important;
     }
 
-    /* Posiciona o relatório */
+    /* 3. Posiciona o Modal como único elemento */
     #modalRecomendacao {
         display: block !important;
-        position: relative !important; /* Relative evita quebra de página errada */
+        position: relative !important; /* Relative evita bugs de quebra de página */
         top: 0 !important;
         left: 0 !important;
         width: 100% !important;
@@ -507,17 +344,9 @@ tr:hover { background-color: #f9f9f9; }
         z-index: 10000 !important;
     }
 
-    /* Garante que o conteúdo interno seja visível */
-    #modalRecomendacao * {
-        visibility: visible !important;
-    }
+    #modalRecomendacao * { visibility: visible !important; }
 
-    /* Remove botões e barras de rolagem do papel */
-    .modal-actions, .close-modal, .btn-action, .btn-rec, ::-webkit-scrollbar {
-        display: none !important;
-    }
-
-    /* Ajuste da folha A4 */
+    /* 4. Limpa elementos de interface */
     .modal-content {
         box-shadow: none !important;
         border: none !important;
@@ -525,10 +354,11 @@ tr:hover { background-color: #f9f9f9; }
         width: 100% !important;
         max-width: 100% !important;
     }
-
-    /* Garante cores de fundo (tabelas e cabeçalhos) */
-    * {
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
+    .modal-actions, .close-modal, .navbar, .btn-action, ::-webkit-scrollbar {
+        display: none !important;
     }
+
+    /* 5. Garante cores e margens */
+    @page { margin: 1.5cm; size: auto; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
