@@ -233,7 +233,7 @@
     <div id="view-quimicos" class="view-section">
         <header><h1>Elementos</h1></header>
         <div class="card">
-            <form id="quimicoForm">
+            <form id="quimicoForm"><script type="module" src="app.js?v=2"></script>
                 <input type="hidden" id="idQuimico">
                 <div class="grid-3">
                     <div class="input-wrapper"><label>Sigla</label><input type="text" id="siglaQuimico" required></div>
@@ -262,7 +262,23 @@
         </div>
     </div>
     <!-- ============================================ -->
-
+<!-- ============================================ -->
+    <!-- CÓDIGO DO MODAL (ESTÁ FALTANDO ISSO) -->
+    <!-- ============================================ -->
+    <div id="modalRecomendacao" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="app.fecharModal()">&times;</span>
+            
+            <!-- O RELATÓRIO SERÁ ESCRITO AQUI -->
+            <div id="conteudoRecomendacao" class="report-content"></div>
+            
+            <div class="modal-actions">
+                <button class="btn-action btn-save" onclick="window.print()">🖨️ Imprimir</button>
+                <button class="btn-action btn-cancel" onclick="app.fecharModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================ -->
     <script type="module" src="app.js?v=2"></script>
 </body>
 </html>
