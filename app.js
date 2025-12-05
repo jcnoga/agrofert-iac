@@ -10,6 +10,7 @@ const firebaseConfig = {
   messagingSenderId: "776623089218",
   appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
 };
+
 // Inicializa o App
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
@@ -31,8 +32,6 @@ const app = {
         this.renderAllTables();
         this.populateSelects();
         this.updateDashboard();
-        
-        // Garante que a primeira tela seja a Home
         this.navigateTo('home');
     },
 
@@ -44,10 +43,9 @@ const app = {
                 const snapshot = await getDocs(collection(db, colName));
                 this.data[colName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             }
-            console.log("Dados carregados.");
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
-            alert("Erro ao conectar no Firebase. Verifique o console (F12).");
+            alert("Erro de conexão. Verifique o console (F12).");
         }
     },
 
@@ -88,7 +86,7 @@ const app = {
         }
     },
 
-    // --- NAVEGAÇÃO (MENU) ---
+    // --- NAVEGAÇÃO ---
     navigateTo: function(viewId) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
@@ -102,36 +100,29 @@ const app = {
         if(viewId === 'amostras') this.populateSelects();
     },
 
-    // --- CAPTURA DE FORMULÁRIOS ---
+    // --- FORMULÁRIOS ---
     salvarAgronomo: function() {
         const id = document.getElementById('idAgronomo').value;
         const data = { nome: document.getElementById('nomeAgronomo').value, crea: document.getElementById('creaAgronomo').value };
         this.saveToFirebase('agronomos', data, id).then(ok => { if(ok) this.limparForm('agronomoForm', 'idAgronomo'); });
     },
-
     salvarCultura: function() {
         const id = document.getElementById('idCultura').value;
-        const data = { 
-            nome: document.getElementById('nomeCultura').value, 
-            tipo: document.getElementById('tipoCultura').value, 
-            producao: document.getElementById('prodCultura').value 
-        };
+        const data = { nome: document.getElementById('nomeCultura').value, tipo: document.getElementById('tipoCultura').value, producao: document.getElementById('prodCultura').value };
         this.saveToFirebase('culturas', data, id).then(ok => { if(ok) this.limparForm('culturaForm', 'idCultura'); });
     },
-
     salvarTecnologia: function() {
         const id = document.getElementById('idTec').value;
         const data = { nome: document.getElementById('nomeTec').value, regiao: document.getElementById('regiaoTec').value };
         this.saveToFirebase('tecnologias', data, id).then(ok => { if(ok) this.limparForm('tecForm', 'idTec'); });
     },
-
     salvarQuimico: function() {
         const id = document.getElementById('idQuimico').value;
         const data = { sigla: document.getElementById('siglaQuimico').value, nome: document.getElementById('nomeQuimico').value, unidade: document.getElementById('unidadeQuimico').value };
         this.saveToFirebase('quimicos', data, id).then(ok => { if(ok) this.limparForm('quimicoForm', 'idQuimico'); });
     },
 
-    // SALVAR AMOSTRA (Com campo 'anterior' adicionado)
+    // SALVAR AMOSTRA (COM CULTIVO ANTERIOR)
     salvarAmostra: function() {
         const id = document.getElementById('idAmostra').value;
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
@@ -140,7 +131,7 @@ const app = {
         const data = {
             produtor: getVal('samp_produtor'),
             propriedade: getVal('samp_propriedade'),
-            anterior: getVal('samp_anterior'), // <--- CAMPO DO COMBOBOX
+            anterior: getVal('samp_anterior'), // NOVO CAMPO
             cidade: getVal('samp_cidade'),
             agro: getVal('samp_agro'),
             protocolo: getVal('samp_protocolo'),
@@ -153,11 +144,10 @@ const app = {
             // Química
             ph: getNum('samp_ph'), mo: getNum('samp_mo'), p: getNum('samp_p'), s: getNum('samp_s'),
             ca: getNum('samp_ca'), mg: getNum('samp_mg'), k: getNum('samp_k'), hal: getNum('samp_hal'), al: getNum('samp_al'),
-            // Física e Micro
+            // Física
             argila: getNum('samp_argila'), areia: getNum('samp_areia'),
             zn: getNum('samp_zn'), b: getNum('samp_b'), mn: getNum('samp_mn'), cu: getNum('samp_cu'), fe: getNum('samp_fe'), mo_micro: getNum('samp_mo_micro')
         };
-
         this.saveToFirebase('amostras', data, id).then(ok => { if(ok) this.limparForm('amostraForm', 'idAmostra'); });
     },
 
@@ -170,13 +160,14 @@ const app = {
         addSubmit('amostraForm', () => this.salvarAmostra());
     },
 
-    // --- RENDERIZAÇÃO ---
+    // --- RENDERIZAÇÃO DAS TABELAS ---
     renderAllTables: function() {
         this.renderTable('listaCorpoAgro', this.data.agronomos, i => `<td>${i.nome}</td><td>${i.crea}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('agronomos','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('agronomos','${i.id}')">🗑️</button></td>`);
         this.renderTable('listaCorpoCultura', this.data.culturas, i => `<td>${i.nome}</td><td>${i.tipo}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('culturas','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('culturas','${i.id}')">🗑️</button></td>`);
         this.renderTable('listaCorpoTec', this.data.tecnologias, i => `<td>${i.nome}</td><td>${i.regiao}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('tecnologias','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('tecnologias','${i.id}')">🗑️</button></td>`);
         this.renderTable('listaCorpoQuimico', this.data.quimicos, i => `<td>${i.sigla}</td><td>${i.nome}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('quimicos','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('quimicos','${i.id}')">🗑️</button></td>`);
 
+        // AQUI ESTÃO OS BOTÕES QUE PARARAM. CERTIFIQUE-SE QUE ESTÃO ASSIM:
         this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
             <td>${i.produtor}<br><small>${i.talhao}</small></td>
             <td>
@@ -209,27 +200,18 @@ const app = {
         });
     },
 
-    // --- FUNÇÃO EDITAR (Carregando o Combobox) ---
+    // --- FUNÇÃO EDITAR ---
     editarItem: function(col, id) {
         const item = this.data[col].find(i => i.id === id);
         if(!item) return;
 
         this.navigateTo(col);
-        const setVal = (domId, val) => {
-            const el = document.getElementById(domId);
-            if(el) el.value = (val !== undefined && val !== null) ? val : '';
-        };
+        const setVal = (domId, val) => { const el = document.getElementById(domId); if(el) el.value = (val !== undefined && val !== null) ? val : ''; };
 
         if (col === 'amostras') {
             setVal('idAmostra', id);
-            // 'anterior' incluído na lista para carregar o valor correto
-            ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura', 'producao', 'esp_linha', 'esp_cova'].forEach(k => {
-                setVal('samp_' + k, item[k]);
-            });
-            ['ph', 'mo', 'p', 's', 'ca', 'mg', 'k', 'hal', 'al', 'argila', 'areia', 'zn', 'b', 'mn', 'cu', 'fe', 'mo_micro'].forEach(k => {
-                setVal('samp_' + k, item[k]);
-            });
-
+            ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura', 'producao', 'esp_linha', 'esp_cova'].forEach(k => setVal('samp_' + k, item[k]));
+            ['ph', 'mo', 'p', 's', 'ca', 'mg', 'k', 'hal', 'al', 'argila', 'areia', 'zn', 'b', 'mn', 'cu', 'fe', 'mo_micro'].forEach(k => setVal('samp_' + k, item[k]));
         } else if (col === 'agronomos') {
             setVal('idAgronomo', id); setVal('nomeAgronomo', item.nome); setVal('creaAgronomo', item.crea);
         } else if (col === 'culturas') {
@@ -249,7 +231,7 @@ const app = {
         const produtores = ["Fazenda Esperança", "Sítio Boa Vista", "Agro Silva"];
         set('samp_produtor', produtores[Math.floor(Math.random() * produtores.length)]);
         set('samp_propriedade', "Gleba Norte");
-        set('samp_anterior', "milho"); // Padrão
+        set('samp_anterior', "milho");
         set('samp_cidade', "Rio Verde/GO");
         set('samp_talhao', "T-" + Math.floor(Math.random() * 50));
         set('samp_protocolo', "L-" + Math.floor(Math.random() * 9999));
@@ -284,7 +266,7 @@ const app = {
     gerarRecomendacao: function(id) {
         const a = this.data.amostras.find(i => i.id === id);
         if(!a) return;
-
+        
         const val = (v) => parseFloat(v) || 0;
         const fmt = (v) => val(v).toFixed(2);
         const fmt1 = (v) => val(v).toFixed(1);
@@ -334,83 +316,55 @@ const app = {
     agroCalc: {
         val: function(v) { return parseFloat(v) || 0; },
 
-        // 1. CALAGEM (V% = 70 para Milho)
+        // 1. CALAGEM
         calcularCalagem: function(a, prnt = 80) {
             const SB = this.val(a.ca) + this.val(a.mg) + this.val(a.k);
             const CTC = SB + this.val(a.hal);
             const V_atual = CTC > 0 ? (SB / CTC) * 100 : 0;
-            
             const V_meta = 70; 
             let NC = 0;
-            if (V_atual < V_meta) {
-                NC = ((V_meta - V_atual) * CTC) / prnt;
-            }
-
+            if (V_atual < V_meta) { NC = ((V_meta - V_atual) * CTC) / prnt; }
             const tipo = this.val(a.mg) < 0.5 ? "Dolomítico (Rico em Mg)" : "Calcítico";
-
-            return {
-                toneladas: Math.max(0, NC).toFixed(1),
-                v_atual: V_atual.toFixed(1),
-                tipo: tipo
-            };
+            return { toneladas: Math.max(0, NC).toFixed(1), v_atual: V_atual.toFixed(1), tipo: tipo };
         },
 
-        // 2. NITROGÊNIO (TABELA 2 - Histórico e Produtividade)
+        // 2. NITROGÊNIO (Tabela 2 - Histórico)
         calcularN_Tabela: function(a) {
             const prodTon = this.val(a.producao) || 6; 
             const sacas = prodTon / 0.06;
-            
-            // Pega histórico do combobox (padrão: milho)
             const anterior = a.anterior || 'milho';
-            
             let doseN = 0;
 
             if (anterior === 'leguminosas' || anterior === 'pousio') {
-                // Leguminosa deixa N no solo, dose menor
                 if (sacas <= 100) doseN = 40; else doseN = 60;
             } 
             else if (anterior === 'gramineas') {
-                // Gramíneas roubam N na decomposição, dose maior
                 if (sacas <= 100) doseN = 80; else doseN = 100;
             } 
             else { 
-                // Milho (palha incorporada) - Padrão
                 if (sacas <= 100) doseN = 60; else doseN = 80;
             }
-
-            // Mapeamento para texto legível
-            const mapNome = {
-                'milho': 'Milho (c/ Palha)',
-                'gramineas': 'Gramíneas',
-                'leguminosas': 'Leguminosas',
-                'pousio': 'Pousio'
-            };
-
+            const mapNome = {'milho': 'Milho (c/ Palha)', 'gramineas': 'Gramíneas', 'leguminosas': 'Leguminosas', 'pousio': 'Pousio'};
             return { N: doseN, sacas: sacas.toFixed(0), historico: mapNome[anterior] || anterior };
         },
 
-        // 3. FÓSFORO E POTÁSSIO (TABELA 1 - Faixas)
+        // 3. FÓSFORO E POTÁSSIO (Tabela 1 - Faixas)
         calcularPK_Tabela: function(a) {
             const argila = this.val(a.argila);
             const P = this.val(a.p);
             const K_mmol = this.val(a.k) * 10; 
-
             let recP = 0, recK = 0;
 
             if (argila <= 20) { 
-                // ARENOSO
                 if (P <= 10) recP = 80; else if (P <= 20) recP = 60; else if (P <= 30) recP = 40; else recP = 20;
                 if (K_mmol <= 0.8) recK = 80; else if (K_mmol <= 1.5) recK = 60; else if (K_mmol <= 2.5) recK = 40; else recK = 20;
             } else if (argila <= 60) {
-                // MÉDIO
                 if (P <= 10) recP = 100; else if (P <= 20) recP = 80; else if (P <= 30) recP = 60; else recP = 40;
                 if (K_mmol <= 1.0) recK = 100; else if (K_mmol <= 2.0) recK = 80; else if (K_mmol <= 3.5) recK = 60; else recK = 40;
             } else {
-                // ARGILOSO
                 if (P <= 10) recP = 120; else if (P <= 20) recP = 100; else if (P <= 30) recP = 80; else recP = 60;
                 if (K_mmol <= 1.2) recK = 120; else if (K_mmol <= 2.5) recK = 100; else if (K_mmol <= 4.5) recK = 80; else recK = 60;
             }
-
             return { P: recP, K: recK };
         }
     },
@@ -432,8 +386,8 @@ const app = {
         let recN = n_calc.N;
         let recP = pk.P;
         let recK = pk.K;
-
         let avisoSafrinha = "";
+        
         if (isSafrinha) {
             recN = Math.round(recN * 0.8);
             recK = Math.round(recK * 0.8);
