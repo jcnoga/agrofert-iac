@@ -3,14 +3,13 @@ import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } 
 
 // --- COLE SUAS CHAVES DO FIREBASE AQUI ---
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJETO_ID",
-    storageBucket: "SEU_PROJETO.appspot.com",
-    messagingSenderId: "NUMEROS",
-    appId: "CODIGO_APP_ID"
+  apiKey: "AIzaSyDGd2QBLfYTyAtSwaqsJci-sy9stmb1TGQ",
+  authDomain: "agrofert-2a6e3.firebaseapp.com",
+  projectId: "agrofert-2a6e3",
+  storageBucket: "agrofert-2a6e3.firebasestorage.app",
+  messagingSenderId: "776623089218",
+  appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
 };
-
 // Inicializa o App
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
