@@ -140,7 +140,7 @@ const app = {
         this.saveToFirebase('quimicos', data, id).then(ok => { if(ok) this.limparForm('quimicoForm', 'idQuimico'); });
     },
 
-    salvarAmostra: function() {
+salvarAmostra: function() {
         const id = document.getElementById('idAmostra').value;
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
         const getNum = (id) => document.getElementById(id) ? (parseFloat(document.getElementById(id).value) || 0) : 0;
@@ -148,7 +148,9 @@ const app = {
         const data = {
             produtor: getVal('samp_produtor'),
             propriedade: getVal('samp_propriedade'),
+            anterior: getVal('samp_anterior'), // <--- NOVO CAMPO AQUI
             cidade: getVal('samp_cidade'),
+            // ... resto dos campos continua igual ...
             agro: getVal('samp_agro'),
             protocolo: getVal('samp_protocolo'),
             talhao: getVal('samp_talhao'),
@@ -227,6 +229,9 @@ const app = {
     // --- PREENCHIMENTO REALISTA (ATUALIZADO) ---
     preencherTeste: function() {
         const rand = (min, max, dec = 2) => (Math.random() * (max - min) + min).toFixed(dec);
+		set('samp_produtor', "Fazenda Modelo");
+        set('samp_anterior', "leguminosas"); // Testando com Soja como antecessor
+
         const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
 
         const produtores = ["Fazenda Esperança", "Sítio Boa Vista", "Agro Silva", "Fazenda São José"];
@@ -468,24 +473,35 @@ const app = {
         },
 
         // 2. NITROGÊNIO (TABELA 2 - SEM INTERPOLAÇÃO)
+// 2. NITROGÊNIO (TABELA 2 - Baseado no Cultivo Anterior)
         calcularN_Tabela: function(a) {
             // Conversão: t/ha para sacas de 60kg
             const prodTon = this.val(a.producao) || 6; 
             const sacas = prodTon / 0.06;
             
-            // Cenário Padrão: Cultivo anterior Gramíneas (Braquiária/Milheto)
-            // Tabela 2:
-            // <= 100 sacas: 80 kg/ha
-            // > 100 sacas: 100 kg/ha
+            // Recupera o histórico (padrão: milho se estiver vazio)
+            const anterior = a.anterior || 'milho';
             
             let doseN = 0;
-            if (sacas <= 100) {
-                doseN = 80;
-            } else {
-                doseN = 100;
+
+            // Lógica Tabela 2 IAC
+            if (anterior === 'leguminosas' || anterior === 'pousio') {
+                // Leguminosas (Soja, Feijão) ou Pousio
+                if (sacas <= 100) doseN = 40;
+                else doseN = 60;
+            } 
+            else if (anterior === 'gramineas') {
+                // Gramíneas (Braquiária, Pastagens...)
+                if (sacas <= 100) doseN = 80;
+                else doseN = 100;
+            } 
+            else {
+                // Padrão: Milho (com palha incorporada)
+                if (sacas <= 100) doseN = 60;
+                else doseN = 80;
             }
 
-            return { N: doseN, sacas: sacas.toFixed(0) };
+            return { N: doseN, sacas: sacas.toFixed(0), historico: anterior };
         },
 
         // 3. FÓSFORO E POTÁSSIO (TABELA 1 - FAIXAS ESTRITAS)
@@ -759,27 +775,70 @@ const app = {
     },
     // --- UTILS ---
     limparForm: function(fid, iid) { document.getElementById(fid).reset(); document.getElementById(iid).value = ''; },
-    editarItem: function(col, id) {
+editarItem: function(col, id) {
+        // 1. Busca o item na lista local (memória)
         const item = this.data[col].find(i => i.id === id);
         if(!item) return;
+
+        // 2. Navega para a tela do formulário correspondente
         this.navigateTo(col);
-        const setVal = (k, v) => { const el = document.getElementById(k); if(el) el.value = v; };
-        
-        if(col === 'amostras') {
+
+        // 3. Função auxiliar para preencher os inputs pelo ID do HTML
+        const setVal = (domId, val) => {
+            const el = document.getElementById(domId);
+            // Verifica se o valor existe, senão deixa vazio para não escrever "undefined"
+            if(el) el.value = (val !== undefined && val !== null) ? val : '';
+        };
+
+        // 4. Lógica de preenchimento para cada tipo de cadastro
+        if (col === 'amostras') {
             setVal('idAmostra', id);
-            ['produtor','propriedade','cidade','agro','protocolo','talhao','data','cultura','producao','esp_linha','esp_cova'].forEach(k => setVal('samp_'+k, item[k]));
-            ['ph','mo','p','s','ca','mg','k','hal','al','argila','areia','zn','b','mn','cu','fe','mo_micro'].forEach(k => setVal('samp_'+k, item[k]));
-        } else if(col === 'agronomos') {
-            setVal('idAgronomo', id); setVal('nomeAgronomo', item.nome); setVal('creaAgronomo', item.crea);
-        } else if(col === 'culturas') {
-            setVal('idCultura', id); setVal('nomeCultura', item.nome); setVal('tipoCultura', item.tipo); setVal('prodCultura', item.producao);
-        } else if(col === 'tecnologias') {
-            setVal('idTec', id); setVal('nomeTec', item.nome); setVal('regiaoTec', item.regiao);
-        } else if(col === 'quimicos') {
-            setVal('idQuimico', id); setVal('siglaQuimico', item.sigla); setVal('nomeQuimico', item.nome); setVal('unidadeQuimico', item.unidade);
+
+            // Campos de Texto e Selects
+            // NOTA: 'anterior' foi adicionado aqui para carregar o combobox novo
+            ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura'].forEach(key => {
+                setVal('samp_' + key, item[key]);
+            });
+
+            // Campos Numéricos Gerais
+            ['producao', 'esp_linha', 'esp_cova'].forEach(key => {
+                setVal('samp_' + key, item[key]);
+            });
+
+            // Todos os campos de Análise de Solo (Química, Física e Micro)
+            const camposSolo = [
+                'ph', 'mo', 'p', 's', 'ca', 'mg', 'k', 'hal', 'al', // Macro
+                'argila', 'areia',                                  // Física
+                'zn', 'b', 'mn', 'cu', 'fe', 'mo_micro'             // Micro
+            ];
+
+            camposSolo.forEach(key => {
+                setVal('samp_' + key, item[key]);
+            });
+
+        } else if (col === 'agronomos') {
+            setVal('idAgronomo', id);
+            setVal('nomeAgronomo', item.nome);
+            setVal('creaAgronomo', item.crea);
+
+        } else if (col === 'culturas') {
+            setVal('idCultura', id);
+            setVal('nomeCultura', item.nome);
+            setVal('tipoCultura', item.tipo);
+            setVal('prodCultura', item.producao);
+
+        } else if (col === 'tecnologias') {
+            setVal('idTec', id);
+            setVal('nomeTec', item.nome);
+            setVal('regiaoTec', item.regiao);
+
+        } else if (col === 'quimicos') {
+            setVal('idQuimico', id);
+            setVal('siglaQuimico', item.sigla);
+            setVal('nomeQuimico', item.nome);
+            setVal('unidadeQuimico', item.unidade);
         }
-    },
-    populateSelects: function() {
+    },    populateSelects: function() {
         const selAgro = document.getElementById('samp_agro');
         const selCult = document.getElementById('samp_cultura');
         if(selAgro && this.data.agronomos) selAgro.innerHTML = '<option value="">Selecione...</option>' + this.data.agronomos.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
