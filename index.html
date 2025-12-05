@@ -6,10 +6,16 @@
     <title>AgroFert - Sistema de Gestão</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- CSS DE EMERGÊNCIA PARA GARANTIR O MENU -->
+    <style>
+        body { padding-top: 90px; }
+        .navbar { display: flex; visibility: visible; opacity: 1; z-index: 99999; }
+    </style>
 </head>
 <body>
 
-    <!-- MENU DE NAVEGAÇÃO (PLANO / SEM DROPDOWN) -->
+    <!-- MENU DE NAVEGAÇÃO -->
     <nav class="navbar">
         <div class="brand" onclick="app.navigateTo('home')">
             Agro<span>Fert</span>
@@ -28,7 +34,7 @@
     <div id="view-home" class="view-section active">
         <div class="hero-card">
             <h1 class="hero-title">Bem-vindo ao AgroFert</h1>
-            <p class="hero-subtitle">Sistema Integrado de Recomendação Agronômica.</p>
+            <p class="hero-subtitle">Sistema Integrado de Recomendação Agronômica (Padrão IAC).</p>
         </div>
         <div class="dashboard-grid">
             <div class="card dash-card soil" onclick="app.navigateTo('amostras')">
@@ -43,11 +49,10 @@
                 <h3 id="dashTotalCulturas">0</h3>
                 <p>Culturas</p>
             </div>
-        </div>Dados Gerais
+        </div>
     </div>
 
     <!-- VIEW: CADASTRO DE AMOSTRAS -->
-<!-- VIEW: CADASTRO DE AMOSTRAS (CORRIGIDO E ALINHADO) -->
     <div id="view-amostras" class="view-section">
         <header>
             <h1>Amostras de Solo</h1>
@@ -165,50 +170,99 @@
             </table>
         </div>
     </div>
+
+    <!-- VIEW: CADASTRO DE AGRÔNOMOS -->
+    <div id="view-agronomos" class="view-section">
+        <header><h1>Agrônomos</h1></header>
+        <div class="card">
+            <form id="agronomoForm">
+                <input type="hidden" id="idAgronomo">
+                <div class="grid-2">
+                    <div class="input-wrapper"><label>Nome</label><input type="text" id="nomeAgronomo" required></div>
+                    <div class="input-wrapper"><label>CREA</label><input type="text" id="creaAgronomo" required></div>
+                </div>
+                <div class="btn-container mt-1">
+                    <button type="submit" class="btn-action btn-save">Salvar</button>
+                    <button type="button" class="btn-action btn-cancel" onclick="app.limparForm('agronomoForm', 'idAgronomo')">Limpar</button>
+                </div>
+            </form>
+        </div>
+        <div class="table-container"><table id="tabelaAgronomos"><thead><tr><th>Nome</th><th>CREA</th><th>Ações</th></tr></thead><tbody id="listaCorpoAgro"></tbody></table></div>
+    </div>
+
+    <!-- VIEW: CADASTRO DE CULTURAS -->
+    <div id="view-culturas" class="view-section">
+        <header><h1>Culturas</h1></header>
+        <div class="card">
+            <form id="culturaForm">
+                <input type="hidden" id="idCultura">
+                <div class="grid-3">
+                    <div class="input-wrapper"><label>Cultura</label><input type="text" id="nomeCultura" required></div>
+                    <div class="input-wrapper"><label>Tipo</label><select id="tipoCultura"><option value="Anual">Anual</option><option value="Perene">Perene</option></select></div>
+                    <div class="input-wrapper"><label>Prod. Padrão</label><input type="text" id="prodCultura"></div>
+                </div>
+                <div class="btn-container mt-1">
+                    <button type="submit" class="btn-action btn-save">Salvar</button>
+                    <button type="button" class="btn-action btn-cancel" onclick="app.limparForm('culturaForm', 'idCultura')">Limpar</button>
+                </div>
+            </form>
+        </div>
+        <div class="table-container"><table id="tabelaCulturas"><thead><tr><th>Cultura</th><th>Tipo</th><th>Ações</th></tr></thead><tbody id="listaCorpoCultura"></tbody></table></div>
+    </div>
+
+    <!-- VIEW: CADASTRO DE TECNOLOGIAS -->
+    <div id="view-tecnologias" class="view-section">
+        <header><h1>Tecnologias</h1></header>
+        <div class="card">
+            <form id="tecForm">
+                <input type="hidden" id="idTec">
+                <div class="grid-2">
+                    <div class="input-wrapper"><label>Nome</label><input type="text" id="nomeTec" required></div>
+                    <div class="input-wrapper"><label>Região</label><input type="text" id="regiaoTec" required></div>
+                </div>
+                <div class="btn-container mt-1">
+                    <button type="submit" class="btn-action btn-save">Salvar</button>
+                    <button type="button" class="btn-action btn-cancel" onclick="app.limparForm('tecForm', 'idTec')">Limpar</button>
+                </div>
+            </form>
+        </div>
+        <div class="table-container"><table id="tabelaTecnologias"><thead><tr><th>Tecnologia</th><th>Região</th><th>Ações</th></tr></thead><tbody id="listaCorpoTec"></tbody></table></div>
+    </div>
+
+    <!-- VIEW: CADASTRO DE ELEMENTOS -->
+    <div id="view-quimicos" class="view-section">
+        <header><h1>Elementos</h1></header>
+        <div class="card">
+            <form id="quimicoForm">
+                <input type="hidden" id="idQuimico">
+                <div class="grid-3">
+                    <div class="input-wrapper"><label>Sigla</label><input type="text" id="siglaQuimico" required></div>
+                    <div class="input-wrapper"><label>Nome</label><input type="text" id="nomeQuimico" required></div>
+                    <div class="input-wrapper"><label>Unidade</label><input type="text" id="unidadeQuimico" required></div>
+                </div>
+                <div class="btn-container mt-1">
+                    <button type="submit" class="btn-action btn-save">Salvar</button>
+                    <button type="button" class="btn-action btn-cancel" onclick="app.limparForm('quimicoForm', 'idQuimico')">Limpar</button>
+                </div>
+            </form>
+        </div>
+        <div class="table-container"><table id="tabelaQuimicos"><thead><tr><th>Sigla</th><th>Nome</th><th>Ações</th></tr></thead><tbody id="listaCorpoQuimico"></tbody></table></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- ESTE É O PEDACINHO QUE ESTAVA FALTANDO E CAUSAVA O ERRO -->
+    <div id="modalRecomendacao" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="app.fecharModal()">&times;</span>
+            <div id="conteudoRecomendacao" class="report-content"></div>
+            <div class="modal-actions">
+                <button class="btn-action btn-save" onclick="window.print()">🖨️ Imprimir</button>
+                <button class="btn-action btn-cancel" onclick="app.fecharModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================ -->
+
     <script type="module" src="app.js?v=2"></script>
-</body>
-</html>
-
-	
-<head>
-    <!-- ... seus outros links ... -->
-    <link rel="stylesheet" href="styles.css">
-
-    <!-- COLE ISTO AQUI PARA FORÇAR O MENU A APARECER -->
-    <style>
-        body {
-            padding-top: 80px !important;
-        }
-        .navbar {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: 70px !important;
-            background-color: #ffffff !important;
-            border-bottom: 4px solid #2e7d32 !important; /* Borda verde grossa para ver bem */
-            z-index: 999999 !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
-        }
-        .nav-menu {
-            display: flex !important;
-            list-style: none !important;
-            gap: 15px !important;
-        }
-        .nav-link {
-            color: #333 !important;
-            font-weight: bold !important;
-            cursor: pointer !important;
-        }
-        /* Para garantir que não suma na impressão da tela */
-        @media screen {
-            .navbar { display: flex !important; }
-        }
-    </style>
-</head>	
-
 </body>
 </html>
