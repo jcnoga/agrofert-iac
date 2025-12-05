@@ -11,7 +11,6 @@ const firebaseConfig = {
   appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
 };
 
-
 // Inicializa o App
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
@@ -34,23 +33,21 @@ const app = {
         this.populateSelects();
         this.updateDashboard();
         
-        // Garante que a primeira tela ativa seja a Home
+        // Garante que a primeira tela seja a Home
         this.navigateTo('home');
     },
 
     // --- CARREGAMENTO DE DADOS ---
     loadAllData: async function() {
         try {
-            console.log("Carregando dados do Firebase...");
             const collections = ['amostras', 'agronomos', 'culturas', 'tecnologias', 'quimicos'];
-            
             for (const colName of collections) {
                 const snapshot = await getDocs(collection(db, colName));
                 this.data[colName] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             }
             console.log("Dados carregados.");
         } catch (error) {
-            console.error("Erro CRÍTICO ao carregar dados:", error);
+            console.error("Erro ao carregar dados:", error);
             alert("Erro ao conectar no Firebase. Verifique o console (F12).");
         }
     },
@@ -92,22 +89,17 @@ const app = {
         }
     },
 
-    // --- NAVEGAÇÃO (CORRIGIDA) ---
+    // --- NAVEGAÇÃO (MENU) ---
     navigateTo: function(viewId) {
-        // 1. Esconde todas as views
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-        // 2. Desativa todos os links
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
         
-        // 3. Mostra a view desejada
         const view = document.getElementById(`view-${viewId}`);
         if(view) view.classList.add('active');
         
-        // 4. Ativa o link do menu
         const link = document.getElementById(`nav-${viewId}`);
         if(link) link.classList.add('active');
 
-        // 5. Se for amostras, atualiza selects
         if(viewId === 'amostras') this.populateSelects();
     },
 
@@ -140,7 +132,8 @@ const app = {
         this.saveToFirebase('quimicos', data, id).then(ok => { if(ok) this.limparForm('quimicoForm', 'idQuimico'); });
     },
 
-salvarAmostra: function() {
+    // SALVAR AMOSTRA (Atualizado com campo 'anterior')
+    salvarAmostra: function() {
         const id = document.getElementById('idAmostra').value;
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
         const getNum = (id) => document.getElementById(id) ? (parseFloat(document.getElementById(id).value) || 0) : 0;
@@ -148,9 +141,8 @@ salvarAmostra: function() {
         const data = {
             produtor: getVal('samp_produtor'),
             propriedade: getVal('samp_propriedade'),
-            anterior: getVal('samp_anterior'), // <--- NOVO CAMPO AQUI
+            anterior: getVal('samp_anterior'), // <--- CAMPO NOVO
             cidade: getVal('samp_cidade'),
-            // ... resto dos campos continua igual ...
             agro: getVal('samp_agro'),
             protocolo: getVal('samp_protocolo'),
             talhao: getVal('samp_talhao'),
@@ -182,14 +174,10 @@ salvarAmostra: function() {
     // --- RENDERIZAÇÃO ---
     renderAllTables: function() {
         this.renderTable('listaCorpoAgro', this.data.agronomos, i => `<td>${i.nome}</td><td>${i.crea}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('agronomos','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('agronomos','${i.id}')">🗑️</button></td>`);
-        
         this.renderTable('listaCorpoCultura', this.data.culturas, i => `<td>${i.nome}</td><td>${i.tipo}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('culturas','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('culturas','${i.id}')">🗑️</button></td>`);
-        
         this.renderTable('listaCorpoTec', this.data.tecnologias, i => `<td>${i.nome}</td><td>${i.regiao}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('tecnologias','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('tecnologias','${i.id}')">🗑️</button></td>`);
-        
         this.renderTable('listaCorpoQuimico', this.data.quimicos, i => `<td>${i.sigla}</td><td>${i.nome}</td><td><button class="btn-action btn-cancel" onclick="app.editarItem('quimicos','${i.id}')">✎</button> <button class="btn-action btn-cancel" onclick="app.deleteData('quimicos','${i.id}')">🗑️</button></td>`);
 
-        // TABELA DE AMOSTRAS (COM OS DOIS BOTÕES DE RECOMENDAÇÃO)
         this.renderTable('listaCorpoAmostra', this.data.amostras, i => `
             <td>${i.produtor}<br><small>${i.talhao}</small></td>
             <td>
@@ -198,12 +186,8 @@ salvarAmostra: function() {
             </td>
             <td>
                 <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                    <!-- Botão Relatório Simples -->
-                    <button class="btn-rec" onclick="app.gerarRecomendacao('${i.id}')" title="Análise Rápida (Grid)">📊</button> 
-                    
-                    <!-- Botão Recomendação IAC -->
-                    <button class="btn-rec" style="background:#ff9800;" onclick="app.gerarRecomendacaoCompleta('${i.id}')" title="Recomendação IAC 100">🚜</button>
-
+                    <button class="btn-rec" onclick="app.gerarRecomendacao('${i.id}')" title="Análise Rápida">📊</button> 
+                    <button class="btn-rec" style="background:#ff9800;" onclick="app.gerarRecomendacaoCompleta('${i.id}')" title="Recomendação IAC">🚜</button>
                     <button class="btn-action btn-cancel" onclick="app.editarItem('amostras','${i.id}')">✎</button> 
                     <button class="btn-action btn-cancel" onclick="app.deleteData('amostras','${i.id}')">🗑️</button>
                 </div>
@@ -226,17 +210,47 @@ salvarAmostra: function() {
         });
     },
 
-    // --- PREENCHIMENTO REALISTA (ATUALIZADO) ---
+    // --- FUNÇÃO EDITAR CORRIGIDA (Com campo Anterior) ---
+    editarItem: function(col, id) {
+        const item = this.data[col].find(i => i.id === id);
+        if(!item) return;
+
+        this.navigateTo(col);
+        const setVal = (domId, val) => {
+            const el = document.getElementById(domId);
+            if(el) el.value = (val !== undefined && val !== null) ? val : '';
+        };
+
+        if (col === 'amostras') {
+            setVal('idAmostra', id);
+            // 'anterior' incluído na lista abaixo
+            ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura', 'producao', 'esp_linha', 'esp_cova'].forEach(k => {
+                setVal('samp_' + k, item[k]);
+            });
+            ['ph', 'mo', 'p', 's', 'ca', 'mg', 'k', 'hal', 'al', 'argila', 'areia', 'zn', 'b', 'mn', 'cu', 'fe', 'mo_micro'].forEach(k => {
+                setVal('samp_' + k, item[k]);
+            });
+
+        } else if (col === 'agronomos') {
+            setVal('idAgronomo', id); setVal('nomeAgronomo', item.nome); setVal('creaAgronomo', item.crea);
+        } else if (col === 'culturas') {
+            setVal('idCultura', id); setVal('nomeCultura', item.nome); setVal('tipoCultura', item.tipo); setVal('prodCultura', item.producao);
+        } else if (col === 'tecnologias') {
+            setVal('idTec', id); setVal('nomeTec', item.nome); setVal('regiaoTec', item.regiao);
+        } else if (col === 'quimicos') {
+            setVal('idQuimico', id); setVal('siglaQuimico', item.sigla); setVal('nomeQuimico', item.nome); setVal('unidadeQuimico', item.unidade);
+        }
+    },
+
+    // --- PREENCHIMENTO REALISTA ---
     preencherTeste: function() {
         const rand = (min, max, dec = 2) => (Math.random() * (max - min) + min).toFixed(dec);
-		set('samp_produtor', "Fazenda Modelo");
-        set('samp_anterior', "leguminosas"); // Testando com Soja como antecessor
-
         const set = (id, val) => { const el = document.getElementById(id); if(el) el.value = val; };
 
-        const produtores = ["Fazenda Esperança", "Sítio Boa Vista", "Agro Silva", "Fazenda São José"];
+        const produtores = ["Fazenda Esperança", "Sítio Boa Vista", "Agro Silva"];
         set('samp_produtor', produtores[Math.floor(Math.random() * produtores.length)]);
         set('samp_propriedade', "Gleba Norte");
+        set('samp_anterior', "leguminosas"); // Teste com Soja como anterior
         set('samp_cidade', "Rio Verde/GO");
         set('samp_talhao', "T-" + Math.floor(Math.random() * 50));
         set('samp_protocolo', "L-" + Math.floor(Math.random() * 9999));
@@ -248,12 +262,11 @@ salvarAmostra: function() {
         set('samp_esp_linha', "0.50");
         set('samp_esp_cova', "0.20");
 
-        // Química (Solo Ácido Típico)
         const ph = parseFloat(rand(4.8, 5.8, 1));
         set('samp_ph', ph);
-        set('samp_al', ph < 5.5 ? rand(0.3, 1.2, 2) : "0.00"); // Se pH baixo, tem alumínio
+        set('samp_al', ph < 5.5 ? rand(0.3, 1.2, 2) : "0.00"); 
         
-        set('samp_mo', rand(1.5, 4.5, 1)); // M.O. em %
+        set('samp_mo', rand(1.5, 4.5, 1));
         set('samp_p', rand(6, 25, 1));
         set('samp_s', rand(5, 15, 1));
 
@@ -262,11 +275,9 @@ salvarAmostra: function() {
         set('samp_mg', rand(0.4, 1.2, 2));
         set('samp_hal', rand(2.5, 5.0, 2));
 
-        // Física
-        set('samp_argila', Math.floor(rand(25, 60, 0)));
+        set('samp_argila', Math.floor(rand(15, 65, 0))); // Variar para testar arenoso/argiloso
         set('samp_areia', Math.floor(rand(20, 50, 0)));
 
-        // Micro
         set('samp_zn', rand(0.5, 2.5, 2));
         set('samp_b', rand(0.1, 0.5, 2));
         set('samp_mn', rand(3.0, 12.0, 1));
@@ -290,17 +301,15 @@ salvarAmostra: function() {
         
         const somaBasesAl = SB + val(a.al);
         const m = somaBasesAl > 0 ? (val(a.al) / somaBasesAl) * 100 : 0;
-        const silte = 100 - val(a.argila) - val(a.areia);
 
         const html = `
-            <div style="font-family: 'Segoe UI', sans-serif; color: #333; line-height: 1.4;">
+            <div style="font-family: 'Segoe UI', sans-serif; color: #333;">
                 <div style="background: #e8f5e9; padding: 10px; border-radius: 6px; border-left: 5px solid #2e7d32; margin-bottom: 10px;">
-                    <h2 style="margin: 0; color: #1b5e20;">Relatório de Análise (Compacto)</h2>
+                    <h2 style="margin: 0; color: #1b5e20;">Relatório de Análise</h2>
                     <div style="font-size: 0.9rem; margin-top: 5px;">
-                        <strong>Produtor:</strong> ${a.produtor} | <strong>Talhão:</strong> ${a.talhao} | <strong>Cultura:</strong> ${a.cultura}
+                        <strong>Produtor:</strong> ${a.produtor} | <strong>Cultura:</strong> ${a.cultura}
                     </div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; font-size: 0.8rem; text-align: center; margin-bottom: 10px;">
                     <div class="box-res"><strong>pH</strong><br>${fmt(a.ph)}</div>
                     <div class="box-res"><strong>M.O.</strong><br>${fmt1(a.mo)}%</div>
@@ -314,7 +323,6 @@ salvarAmostra: function() {
                     <div class="box-res"><strong>H+Al</strong><br>${fmt(a.hal)}</div>
                     <div class="box-res" style="background:#e8f5e9;"><strong>SB</strong><br>${fmt(SB)}</div>
                 </div>
-
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center;">
                     <div style="padding: 5px; background: ${V < 50 ? '#ffcdd2' : '#c8e6c9'}; border-radius:4px;">
                         <strong>V%:</strong> ${fmt(V)}%
@@ -329,122 +337,7 @@ salvarAmostra: function() {
         document.getElementById('modalRecomendacao').style.display = 'block';
     },
 
-    // --- MOTOR DE CÁLCULO AGRONÔMICO (IAC 100) ---
-// --- MOTOR DE CÁLCULO AGRONÔMICO (NOVO PADRÃO IAC MILHO) ---
-    agroCalc: {
-        // Funções Auxiliares
-        val: function(v) { return parseFloat(v) || 0; },
-        
-        // 1. CÁLCULO DE CALAGEM (IAC: Meta V% = 70 para Milho)
-        calcularCalagem: function(a, prnt = 80) {
-            const Ca = this.val(a.ca);
-            const Mg = this.val(a.mg); // em cmolc/dm3
-            const K = this.val(a.k);
-            const HAl = this.val(a.hal);
-
-            const SB = Ca + Mg + K;
-            const CTC = SB + HAl;
-            const V_atual = CTC > 0 ? (SB / CTC) * 100 : 0;
-            const V_meta = 70; // Regra IAC para Milho
-
-            let NC = 0;
-            if (V_atual < V_meta) {
-                NC = ((V_meta - V_atual) * CTC) / prnt;
-            }
-
-            // Regra do Magnésio: Mínimo 5 mmolc (0.5 cmolc)
-            // Se Mg < 0.5 cmolc, preferir Dolomítico.
-            const tipoCalcario = Mg < 0.5 ? "Dolomítico ou Magnesiano" : "Calcítico";
-
-            return {
-                necessidade: NC > 0,
-                toneladas: Math.max(0, NC).toFixed(1),
-                v_atual: V_atual.toFixed(1),
-                ctc: CTC.toFixed(2),
-                tipo: tipoCalcario,
-                obs: Mg < 0.5 ? "Teor de Mg baixo (< 5 mmolc). Priorizar fornecimento de Mg." : "Teor de Mg adequado."
-            };
-        },
-
-        // 2. CÁLCULO DE P e K (Baseado em Argila e Análise)
-        calcularPK_IAC: function(a) {
-            const argila = this.val(a.argila);
-            const P_resina = this.val(a.p);
-            const K_mmol = this.val(a.k) * 10; // Converte cmolc para mmolc (Regra IAC usa mmolc)
-
-            let recP = 0;
-            let recK = 0;
-
-            // Lógica de Decisão baseada na Tabela 1
-            if (argila <= 20) { // TEXTURA ARENOSA
-                // Fósforo
-                if (P_resina <= 10) recP = 80;
-                else if (P_resina <= 20) recP = 60;
-                else if (P_resina <= 30) recP = 40;
-                else recP = 20;
-
-                // Potássio
-                if (K_mmol <= 0.8) recK = 80;
-                else if (K_mmol <= 1.5) recK = 60;
-                else if (K_mmol <= 2.5) recK = 40;
-                else recK = 20;
-
-            } else if (argila <= 60) { // TEXTURA MÉDIA
-                // Fósforo
-                if (P_resina <= 10) recP = 100;
-                else if (P_resina <= 20) recP = 80;
-                else if (P_resina <= 30) recP = 60;
-                else recP = 40;
-
-                // Potássio
-                if (K_mmol <= 1.0) recK = 100;
-                else if (K_mmol <= 2.0) recK = 80;
-                else if (K_mmol <= 3.5) recK = 60;
-                else recK = 40;
-
-            } else { // TEXTURA ARGILOSA (> 60%)
-                // Fósforo
-                if (P_resina <= 10) recP = 120;
-                else if (P_resina <= 20) recP = 100;
-                else if (P_resina <= 30) recP = 80;
-                else recP = 60;
-
-                // Potássio
-                if (K_mmol <= 1.2) recK = 120;
-                else if (K_mmol <= 2.5) recK = 100;
-                else if (K_mmol <= 4.5) recK = 80;
-                else recK = 60;
-            }
-
-            return { P: recP, K: recK };
-        },
-
-        // 3. CÁLCULO DE NITROGÊNIO (Baseado em Produtividade e Histórico)
-        calcularN_IAC: function(a) {
-            // Converte t/ha para Sacas (1 saca = 60kg = 0.06t)
-            const producaoTon = this.val(a.producao) || 6; 
-            const sacas = producaoTon / 0.06;
-
-            // Tabela 2 IAC
-            // Nota: Como não temos o campo "Cultivo Anterior", assumiremos "Gramíneas/Milho" 
-            // como cenário padrão (mais conservador/comum).
-            // Se fosse Leguminosa, a dose seria menor (40-60).
-            
-            let recN = 0;
-
-            // Faixa de Produtividade
-            if (sacas <= 100) { // Até 6 t/ha
-                recN = 80; // Cenário Gramíneas
-            } else { // > 100 sacas (> 6 t/ha)
-                recN = 100; // Cenário Gramíneas
-            }
-
-            return { N: recN, sacas: sacas.toFixed(0) };
-        }
-    },
-    // --- RELATÓRIO 2: IAC 100 COMPLETO ---
-// --- NOVA FUNÇÃO DE GERAÇÃO DE RELATÓRIO COMPLETO (IAC) ---
-// --- MOTOR DE CÁLCULO AGRONÔMICO (IAC - TABELAS ESTRITAS) ---
+    // --- MOTOR DE CÁLCULO AGRONÔMICO (IAC - TABELAS) ---
     agroCalc: {
         val: function(v) { return parseFloat(v) || 0; },
 
@@ -454,15 +347,12 @@ salvarAmostra: function() {
             const CTC = SB + this.val(a.hal);
             const V_atual = CTC > 0 ? (SB / CTC) * 100 : 0;
             
-            // Fórmula: NC = (V2 - V1) * CTC / PRNT
             const V_meta = 70; 
             let NC = 0;
-            
             if (V_atual < V_meta) {
                 NC = ((V_meta - V_atual) * CTC) / prnt;
             }
 
-            // Critério do Magnésio (Mg < 5 mmolc ou 0.5 cmolc)
             const tipo = this.val(a.mg) < 0.5 ? "Dolomítico (Rico em Mg)" : "Calcítico";
 
             return {
@@ -472,100 +362,56 @@ salvarAmostra: function() {
             };
         },
 
-        // 2. NITROGÊNIO (TABELA 2 - SEM INTERPOLAÇÃO)
-// 2. NITROGÊNIO (TABELA 2 - Baseado no Cultivo Anterior)
+        // 2. NITROGÊNIO (TABELA 2 - Histórico)
         calcularN_Tabela: function(a) {
-            // Conversão: t/ha para sacas de 60kg
             const prodTon = this.val(a.producao) || 6; 
             const sacas = prodTon / 0.06;
             
-            // Recupera o histórico (padrão: milho se estiver vazio)
+            // Pega histórico do combobox (padrão: milho)
             const anterior = a.anterior || 'milho';
             
             let doseN = 0;
 
-            // Lógica Tabela 2 IAC
             if (anterior === 'leguminosas' || anterior === 'pousio') {
-                // Leguminosas (Soja, Feijão) ou Pousio
-                if (sacas <= 100) doseN = 40;
-                else doseN = 60;
+                if (sacas <= 100) doseN = 40; else doseN = 60;
             } 
             else if (anterior === 'gramineas') {
-                // Gramíneas (Braquiária, Pastagens...)
-                if (sacas <= 100) doseN = 80;
-                else doseN = 100;
+                if (sacas <= 100) doseN = 80; else doseN = 100;
             } 
-            else {
-                // Padrão: Milho (com palha incorporada)
-                if (sacas <= 100) doseN = 60;
-                else doseN = 80;
+            else { // Milho
+                if (sacas <= 100) doseN = 60; else doseN = 80;
             }
 
             return { N: doseN, sacas: sacas.toFixed(0), historico: anterior };
         },
 
-        // 3. FÓSFORO E POTÁSSIO (TABELA 1 - FAIXAS ESTRITAS)
+        // 3. FÓSFORO E POTÁSSIO (TABELA 1 - Faixas)
         calcularPK_Tabela: function(a) {
             const argila = this.val(a.argila);
-            const P = this.val(a.p);           // mg/dm3
-            const K_mmol = this.val(a.k) * 10; // Converte cmolc para mmolc
+            const P = this.val(a.p);
+            const K_mmol = this.val(a.k) * 10; 
 
-            let recP = 0;
-            let recK = 0;
+            let recP = 0, recK = 0;
 
-            // --- SELEÇÃO PELA TEXTURA (ARGILA) ---
-            
             if (argila <= 20) { 
-                // === TEXTURA ARENOSA (<= 20%) ===
-                
-                // Fósforo (P)
-                if (P <= 10) recP = 80;
-                else if (P <= 20) recP = 60;
-                else if (P <= 30) recP = 40;
-                else recP = 20; // > 30
-
-                // Potássio (K)
-                if (K_mmol <= 0.8) recK = 80;
-                else if (K_mmol <= 1.5) recK = 60;
-                else if (K_mmol <= 2.5) recK = 40;
-                else recK = 20; // > 2.5
-
+                // ARENOSO
+                if (P <= 10) recP = 80; else if (P <= 20) recP = 60; else if (P <= 30) recP = 40; else recP = 20;
+                if (K_mmol <= 0.8) recK = 80; else if (K_mmol <= 1.5) recK = 60; else if (K_mmol <= 2.5) recK = 40; else recK = 20;
             } else if (argila <= 60) {
-                // === TEXTURA MÉDIA (21 - 60%) ===
-                
-                // Fósforo (P)
-                if (P <= 10) recP = 100;
-                else if (P <= 20) recP = 80;
-                else if (P <= 30) recP = 60;
-                else recP = 40; // > 30
-
-                // Potássio (K)
-                if (K_mmol <= 1.0) recK = 100;
-                else if (K_mmol <= 2.0) recK = 80;
-                else if (K_mmol <= 3.5) recK = 60;
-                else recK = 40; // > 3.5
-
+                // MÉDIO
+                if (P <= 10) recP = 100; else if (P <= 20) recP = 80; else if (P <= 30) recP = 60; else recP = 40;
+                if (K_mmol <= 1.0) recK = 100; else if (K_mmol <= 2.0) recK = 80; else if (K_mmol <= 3.5) recK = 60; else recK = 40;
             } else {
-                // === TEXTURA ARGILOSA (> 60%) ===
-                
-                // Fósforo (P)
-                if (P <= 10) recP = 120;
-                else if (P <= 20) recP = 100;
-                else if (P <= 30) recP = 80;
-                else recP = 60; // > 30
-
-                // Potássio (K)
-                if (K_mmol <= 1.2) recK = 120;
-                else if (K_mmol <= 2.5) recK = 100;
-                else if (K_mmol <= 4.5) recK = 80;
-                else recK = 60; // > 4.5
+                // ARGILOSO
+                if (P <= 10) recP = 120; else if (P <= 20) recP = 100; else if (P <= 30) recP = 80; else recP = 60;
+                if (K_mmol <= 1.2) recK = 120; else if (K_mmol <= 2.5) recK = 100; else if (K_mmol <= 4.5) recK = 80; else recK = 60;
             }
 
             return { P: recP, K: recK };
         }
     },
 
-    // --- GERAÇÃO DO RELATÓRIO (COM REGRAS DE PARCELAMENTO) ---
+    // --- RELATÓRIO 2: IAC (Parcelamento + Histórico) ---
     gerarRecomendacaoCompleta: function(id) {
         const a = this.data.amostras.find(i => i.id === id);
         if(!a) return;
@@ -575,7 +421,6 @@ salvarAmostra: function() {
         const isSafrinha = culturaNorm.includes('safrinha');
         const isArenoso = argila <= 20;
 
-        // 1. Cálculos baseados nas tabelas
         const calagem = this.agroCalc.calcularCalagem(a);
         const pk = this.agroCalc.calcularPK_Tabela(a);
         const n_calc = this.agroCalc.calcularN_Tabela(a);
@@ -584,71 +429,45 @@ salvarAmostra: function() {
         let recP = pk.P;
         let recK = pk.K;
 
-        // 2. Ajuste Safrinha (-20%)
         let avisoSafrinha = "";
         if (isSafrinha) {
             recN = Math.round(recN * 0.8);
             recK = Math.round(recK * 0.8);
-            avisoSafrinha = "<br><span style='color:red; font-size:0.8em'>* Doses de N e K reduzidas em 20% (Safrinha)</span>";
+            avisoSafrinha = "<br><span style='color:red; font-size:0.8em'>* Redução de 20% (Safrinha)</span>";
         }
 
-        // 3. Regras de Parcelamento (Texto 5.1 e Observações Tabela 1)
+        // PARCELAMENTO
         let htmlTabela = "";
-        const P_plantio = recP; // Todo P no sulco
+        const P_plantio = recP; 
 
         if (isArenoso) {
-            // == ARENOSO: PARCELAR EM 3 VEZES ==
-            // N: 1/3 Plantio, 1/3 Cob (V4), 1/3 Cob (V8)
-            // K: 1/3 Plantio, 1/3 Cob (V4), 1/3 Cob (V8)
-            
             const N_p = Math.round(recN / 3);
             const K_p = Math.round(recK / 3);
-            const N_rest = recN - (N_p * 2); // O que sobra vai na última
+            const N_rest = recN - (N_p * 2);
             const K_rest = recK - (K_p * 2);
 
             htmlTabela = `
-                <tr>
-                    <td><strong>Plantio</strong><br><small>No sulco</small></td>
-                    <td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>1ª Cobertura</strong><br><small>V4-V6 (30 dias)</small></td>
-                    <td>N: <strong>${N_p}</strong> | K₂O: <strong>${K_p}</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>2ª Cobertura</strong><br><small>V8-V10 (50 dias)</small></td>
-                    <td>N: <strong>${N_rest}</strong> | K₂O: <strong>${K_rest}</strong></td>
-                </tr>
+                <tr><td><strong>Plantio</strong></td><td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td></tr>
+                <tr><td><strong>1ª Cobertura</strong></td><td>N: <strong>${N_p}</strong> | K₂O: <strong>${K_p}</strong></td></tr>
+                <tr><td><strong>2ª Cobertura</strong></td><td>N: <strong>${N_rest}</strong> | K₂O: <strong>${K_rest}</strong></td></tr>
             `;
         } else {
-            // == TEXTURA MÉDIA/ARGILOSA ==
-            // N: 1/3 Plantio, 2/3 Cobertura (V4)
-            // K: 1/2 Plantio, 1/2 Cobertura (V4)
-            
             const N_p = Math.round(recN / 3);
             const N_c = recN - N_p;
-            
             const K_p = Math.round(recK / 2);
             const K_c = recK - K_p;
 
             htmlTabela = `
-                <tr>
-                    <td><strong>Plantio</strong><br><small>No sulco</small></td>
-                    <td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td>
-                </tr>
-                <tr>
-                    <td><strong>Cobertura</strong><br><small>V4-V6 (Afilhamento)</small></td>
-                    <td>N: <strong>${N_c}</strong> | K₂O: <strong>${K_c}</strong></td>
-                </tr>
+                <tr><td><strong>Plantio</strong></td><td>N: <strong>${N_p}</strong> | P₂O₅: <strong>${P_plantio}</strong> | K₂O: <strong>${K_p}</strong></td></tr>
+                <tr><td><strong>Cobertura</strong></td><td>N: <strong>${N_c}</strong> | K₂O: <strong>${K_c}</strong></td></tr>
             `;
         }
 
-        // 4. Montar HTML
         const html = `
             <div class="report-container">
                 <div class="report-header">
-                    <h2>Recomendação Oficial (IAC Tabelado)</h2>
-                    <p><strong>Cultura:</strong> ${a.cultura} ${isSafrinha ? '(Safrinha)' : ''}</p>
+                    <h2>Recomendação Oficial (IAC)</h2>
+                    <p><strong>Cultura:</strong> ${a.cultura} | <strong>Histórico:</strong> ${n_calc.historico}</p>
                     <p><strong>Meta:</strong> ${n_calc.sacas} sacas/ha | <strong>Argila:</strong> ${argila}% (${isArenoso ? 'Arenoso' : 'Médio/Argiloso'})</p>
                 </div>
 
@@ -659,12 +478,11 @@ salvarAmostra: function() {
                             <h4>Calagem</h4>
                             <p class="big-num">${calagem.toneladas} <small>t/ha</small></p>
                             <small>Meta V% = 70</small>
-                            <p class="obs">Tipo: ${calagem.tipo}</p>
+                            <p class="obs">${calagem.tipo}</p>
                         </div>
                         <div class="card-rec info">
                             <h4>Orgânica</h4>
                             <p>Esterco Curral: <strong>15-20 t/ha</strong></p>
-                            <small>Ou Cama de Frango: 4-6 t/ha</small>
                         </div>
                     </div>
                 </div>
@@ -672,9 +490,9 @@ salvarAmostra: function() {
                 <div class="report-section">
                     <h3>2. Adubação Mineral (kg/ha) ${avisoSafrinha}</h3>
                     <div class="nutri-summary">
-                        <span>N Total: <strong>${recN}</strong></span>
-                        <span>P₂O₅ Total: <strong>${recP}</strong></span>
-                        <span>K₂O Total: <strong>${recK}</strong></span>
+                        <span>N: <strong>${recN}</strong></span>
+                        <span>P₂O₅: <strong>${recP}</strong></span>
+                        <span>K₂O: <strong>${recK}</strong></span>
                     </div>
                     <table class="rec-table">
                         <thead><tr><th>Época</th><th>Doses (Elemento Puro)</th></tr></thead>
@@ -685,8 +503,8 @@ salvarAmostra: function() {
                 <div class="report-section">
                     <h3>3. Micronutrientes (Foliar)</h3>
                     <table class="rec-table">
-                        <tr><td><strong>Zinco (Zn)</strong></td><td>300-400 g/ha</td><td>15-20 DAE</td></tr>
-                        <tr><td><strong>Boro (B)</strong></td><td>150-200 g/ha</td><td>25-30 DAE</td></tr>
+                        <tr><td><strong>Zn</strong></td><td>300-400 g/ha (15-20 DAE)</td></tr>
+                        <tr><td><strong>B</strong></td><td>150-200 g/ha (25-30 DAE)</td></tr>
                     </table>
                 </div>
             </div>
@@ -695,150 +513,10 @@ salvarAmostra: function() {
         document.getElementById('conteudoRecomendacao').innerHTML = html;
         document.getElementById('modalRecomendacao').style.display = 'block';
     },
-        // 4. HTML do Relatório
-        const html = `
-            <div class="report-container">
-                <div class="report-header">
-                    <h2>Recomendação Agronômica (Padrão IAC)</h2>
-                    <p><strong>Cultura:</strong> ${a.cultura} ${isSafrinha ? '(Safrinha)' : '(Safra Verão)'}</p>
-                    <p><strong>Produtor:</strong> ${a.produtor} | <strong>Meta:</strong> ${n_calc.sacas} sacas/ha</p>
-                </div>
 
-                <!-- CORREÇÃO -->
-                <div class="report-section">
-                    <h3>1. Correção do Solo</h3>
-                    <div class="grid-2">
-                        <div class="card-rec warning">
-                            <h4>Calagem</h4>
-                            <p class="big-num">${calagem.toneladas} <small>t/ha</small></p>
-                            <small>Meta V%: 70% (Milho)</small>
-                            <p class="obs">Tipo Sugerido: <strong>${calagem.tipo}</strong><br>${calagem.obs}</p>
-                        </div>
-                        <div class="card-rec info">
-                            <h4>Orgânica (Opcional)</h4>
-                            <p>Esterco de Curral: <strong>15-20 t/ha</strong></p>
-                            <p>Ou Cama de Frango: <strong>4-6 t/ha</strong></p>
-                            <small class="obs">Pode reduzir necessidade química.</small>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ADUBAÇÃO -->
-                <div class="report-section">
-                    <h3>2. Adubação Mineral ${msgSafrinha}</h3>
-                    
-                    <div class="nutri-summary">
-                        <span><strong>N Total:</strong> ${Math.round(recN)} kg/ha</span>
-                        <span><strong>P₂O₅ Total:</strong> ${Math.round(recP)} kg/ha</span>
-                        <span><strong>K₂O Total:</strong> ${Math.round(recK)} kg/ha</span>
-                    </div>
-
-                    <table class="rec-table">
-                        <thead>
-                            <tr>
-                                <th>Época</th>
-                                <th>Dose Nutrientes (kg/ha)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${planoAdubacao}
-                        </tbody>
-                    </table>
-                    <p class="obs">
-                        * Argila: ${argila}% (${isArenoso ? 'Arenoso - Parcelamento em 3x' : 'Médio/Argiloso - Parcelamento em 2x'}).<br>
-                        * P no sulco. K e N divididos conforme tabela acima.
-                    </p>
-                </div>
-
-                <!-- MICRONUTRIENTES -->
-                <div class="report-section">
-                    <h3>3. Micronutrientes (Foliar)</h3>
-                    <table class="rec-table">
-                        <tr>
-                            <td><strong>Zinco (Zn)</strong></td>
-                            <td>300 – 400 g/ha</td>
-                            <td>15-20 dias após emergência (1 a 2 aplicações)</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Boro (B)</strong></td>
-                            <td>150 – 200 g/ha</td>
-                            <td>25-30 dias após emergência (1 a 2 aplicações)</td>
-                        </tr>
-                    </table>
-                    <p class="obs">Dispensar se análise de solo indicar teores Altos.</p>
-                </div>
-            </div>
-        `;
-
-        document.getElementById('conteudoRecomendacao').innerHTML = html;
-        document.getElementById('modalRecomendacao').style.display = 'block';
-    },
     // --- UTILS ---
     limparForm: function(fid, iid) { document.getElementById(fid).reset(); document.getElementById(iid).value = ''; },
-editarItem: function(col, id) {
-        // 1. Busca o item na lista local (memória)
-        const item = this.data[col].find(i => i.id === id);
-        if(!item) return;
-
-        // 2. Navega para a tela do formulário correspondente
-        this.navigateTo(col);
-
-        // 3. Função auxiliar para preencher os inputs pelo ID do HTML
-        const setVal = (domId, val) => {
-            const el = document.getElementById(domId);
-            // Verifica se o valor existe, senão deixa vazio para não escrever "undefined"
-            if(el) el.value = (val !== undefined && val !== null) ? val : '';
-        };
-
-        // 4. Lógica de preenchimento para cada tipo de cadastro
-        if (col === 'amostras') {
-            setVal('idAmostra', id);
-
-            // Campos de Texto e Selects
-            // NOTA: 'anterior' foi adicionado aqui para carregar o combobox novo
-            ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura'].forEach(key => {
-                setVal('samp_' + key, item[key]);
-            });
-
-            // Campos Numéricos Gerais
-            ['producao', 'esp_linha', 'esp_cova'].forEach(key => {
-                setVal('samp_' + key, item[key]);
-            });
-
-            // Todos os campos de Análise de Solo (Química, Física e Micro)
-            const camposSolo = [
-                'ph', 'mo', 'p', 's', 'ca', 'mg', 'k', 'hal', 'al', // Macro
-                'argila', 'areia',                                  // Física
-                'zn', 'b', 'mn', 'cu', 'fe', 'mo_micro'             // Micro
-            ];
-
-            camposSolo.forEach(key => {
-                setVal('samp_' + key, item[key]);
-            });
-
-        } else if (col === 'agronomos') {
-            setVal('idAgronomo', id);
-            setVal('nomeAgronomo', item.nome);
-            setVal('creaAgronomo', item.crea);
-
-        } else if (col === 'culturas') {
-            setVal('idCultura', id);
-            setVal('nomeCultura', item.nome);
-            setVal('tipoCultura', item.tipo);
-            setVal('prodCultura', item.producao);
-
-        } else if (col === 'tecnologias') {
-            setVal('idTec', id);
-            setVal('nomeTec', item.nome);
-            setVal('regiaoTec', item.regiao);
-
-        } else if (col === 'quimicos') {
-            setVal('idQuimico', id);
-            setVal('siglaQuimico', item.sigla);
-            setVal('nomeQuimico', item.nome);
-            setVal('unidadeQuimico', item.unidade);
-        }
-    },    populateSelects: function() {
+    populateSelects: function() {
         const selAgro = document.getElementById('samp_agro');
         const selCult = document.getElementById('samp_cultura');
         if(selAgro && this.data.agronomos) selAgro.innerHTML = '<option value="">Selecione...</option>' + this.data.agronomos.map(a => `<option value="${a.nome}">${a.nome}</option>`).join('');
