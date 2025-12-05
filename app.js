@@ -3,12 +3,12 @@ import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } 
 
 // --- COLE SUAS CHAVES DO FIREBASE AQUI ---
 const firebaseConfig = {
-  apiKey: "AIzaSyDGd2QBLfYTyAtSwaqsJci-sy9stmb1TGQ",
-  authDomain: "agrofert-2a6e3.firebaseapp.com",
-  projectId: "agrofert-2a6e3",
-  storageBucket: "agrofert-2a6e3.firebasestorage.app",
-  messagingSenderId: "776623089218",
-  appId: "1:776623089218:web:3a7ccee8cedede2bd5afdb"
+    apiKey: "SUA_API_KEY_AQUI",
+    authDomain: "SEU_PROJETO.firebaseapp.com",
+    projectId: "SEU_PROJETO_ID",
+    storageBucket: "SEU_PROJETO.appspot.com",
+    messagingSenderId: "NUMEROS",
+    appId: "CODIGO_APP_ID"
 };
 
 // Inicializa o App
@@ -132,7 +132,7 @@ const app = {
         this.saveToFirebase('quimicos', data, id).then(ok => { if(ok) this.limparForm('quimicoForm', 'idQuimico'); });
     },
 
-    // SALVAR AMOSTRA (Atualizado com campo 'anterior')
+    // SALVAR AMOSTRA (Com campo 'anterior' adicionado)
     salvarAmostra: function() {
         const id = document.getElementById('idAmostra').value;
         const getVal = (id) => document.getElementById(id) ? document.getElementById(id).value : '';
@@ -141,7 +141,7 @@ const app = {
         const data = {
             produtor: getVal('samp_produtor'),
             propriedade: getVal('samp_propriedade'),
-            anterior: getVal('samp_anterior'), // <--- CAMPO NOVO
+            anterior: getVal('samp_anterior'), // <--- CAMPO DO COMBOBOX
             cidade: getVal('samp_cidade'),
             agro: getVal('samp_agro'),
             protocolo: getVal('samp_protocolo'),
@@ -210,7 +210,7 @@ const app = {
         });
     },
 
-    // --- FUNÇÃO EDITAR CORRIGIDA (Com campo Anterior) ---
+    // --- FUNÇÃO EDITAR (Carregando o Combobox) ---
     editarItem: function(col, id) {
         const item = this.data[col].find(i => i.id === id);
         if(!item) return;
@@ -223,7 +223,7 @@ const app = {
 
         if (col === 'amostras') {
             setVal('idAmostra', id);
-            // 'anterior' incluído na lista abaixo
+            // 'anterior' incluído na lista para carregar o valor correto
             ['produtor', 'propriedade', 'anterior', 'cidade', 'agro', 'protocolo', 'talhao', 'data', 'cultura', 'producao', 'esp_linha', 'esp_cova'].forEach(k => {
                 setVal('samp_' + k, item[k]);
             });
@@ -250,34 +250,29 @@ const app = {
         const produtores = ["Fazenda Esperança", "Sítio Boa Vista", "Agro Silva"];
         set('samp_produtor', produtores[Math.floor(Math.random() * produtores.length)]);
         set('samp_propriedade', "Gleba Norte");
-        set('samp_anterior', "leguminosas"); // Teste com Soja como anterior
+        set('samp_anterior', "milho"); // Padrão
         set('samp_cidade', "Rio Verde/GO");
         set('samp_talhao', "T-" + Math.floor(Math.random() * 50));
         set('samp_protocolo', "L-" + Math.floor(Math.random() * 9999));
         if(document.getElementById('samp_data')) document.getElementById('samp_data').valueAsDate = new Date();
 
-        // Dados Milho (para testar IAC)
         set('samp_cultura', "Milho");
-        set('samp_producao', "12"); // 12 t/ha
+        set('samp_producao', "12"); 
         set('samp_esp_linha', "0.50");
         set('samp_esp_cova', "0.20");
 
         const ph = parseFloat(rand(4.8, 5.8, 1));
         set('samp_ph', ph);
         set('samp_al', ph < 5.5 ? rand(0.3, 1.2, 2) : "0.00"); 
-        
         set('samp_mo', rand(1.5, 4.5, 1));
         set('samp_p', rand(6, 25, 1));
         set('samp_s', rand(5, 15, 1));
-
         set('samp_k', rand(0.15, 0.45, 2));
         set('samp_ca', rand(1.0, 3.5, 2));
         set('samp_mg', rand(0.4, 1.2, 2));
         set('samp_hal', rand(2.5, 5.0, 2));
-
-        set('samp_argila', Math.floor(rand(15, 65, 0))); // Variar para testar arenoso/argiloso
+        set('samp_argila', Math.floor(rand(15, 65, 0)));
         set('samp_areia', Math.floor(rand(20, 50, 0)));
-
         set('samp_zn', rand(0.5, 2.5, 2));
         set('samp_b', rand(0.1, 0.5, 2));
         set('samp_mn', rand(3.0, 12.0, 1));
@@ -298,7 +293,6 @@ const app = {
         const SB = val(a.ca) + val(a.mg) + val(a.k);
         const CTC = SB + val(a.hal);
         const V = CTC > 0 ? ((SB / CTC) * 100) : 0;
-        
         const somaBasesAl = SB + val(a.al);
         const m = somaBasesAl > 0 ? (val(a.al) / somaBasesAl) * 100 : 0;
 
@@ -362,7 +356,7 @@ const app = {
             };
         },
 
-        // 2. NITROGÊNIO (TABELA 2 - Histórico)
+        // 2. NITROGÊNIO (TABELA 2 - Histórico e Produtividade)
         calcularN_Tabela: function(a) {
             const prodTon = this.val(a.producao) || 6; 
             const sacas = prodTon / 0.06;
@@ -373,16 +367,27 @@ const app = {
             let doseN = 0;
 
             if (anterior === 'leguminosas' || anterior === 'pousio') {
+                // Leguminosa deixa N no solo, dose menor
                 if (sacas <= 100) doseN = 40; else doseN = 60;
             } 
             else if (anterior === 'gramineas') {
+                // Gramíneas roubam N na decomposição, dose maior
                 if (sacas <= 100) doseN = 80; else doseN = 100;
             } 
-            else { // Milho
+            else { 
+                // Milho (palha incorporada) - Padrão
                 if (sacas <= 100) doseN = 60; else doseN = 80;
             }
 
-            return { N: doseN, sacas: sacas.toFixed(0), historico: anterior };
+            // Mapeamento para texto legível
+            const mapNome = {
+                'milho': 'Milho (c/ Palha)',
+                'gramineas': 'Gramíneas',
+                'leguminosas': 'Leguminosas',
+                'pousio': 'Pousio'
+            };
+
+            return { N: doseN, sacas: sacas.toFixed(0), historico: mapNome[anterior] || anterior };
         },
 
         // 3. FÓSFORO E POTÁSSIO (TABELA 1 - Faixas)
@@ -467,7 +472,7 @@ const app = {
             <div class="report-container">
                 <div class="report-header">
                     <h2>Recomendação Oficial (IAC)</h2>
-                    <p><strong>Cultura:</strong> ${a.cultura} | <strong>Histórico:</strong> ${n_calc.historico}</p>
+                    <p><strong>Cultura:</strong> ${a.cultura} ${isSafrinha ? '(Safrinha)' : ''} | <strong>Histórico:</strong> ${n_calc.historico}</p>
                     <p><strong>Meta:</strong> ${n_calc.sacas} sacas/ha | <strong>Argila:</strong> ${argila}% (${isArenoso ? 'Arenoso' : 'Médio/Argiloso'})</p>
                 </div>
 

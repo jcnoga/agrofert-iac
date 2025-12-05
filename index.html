@@ -43,7 +43,7 @@
                 <h3 id="dashTotalCulturas">0</h3>
                 <p>Culturas</p>
             </div>
-        </div>
+        </div>Dados Gerais
     </div>
 
     <!-- VIEW: CADASTRO DE AMOSTRAS -->
@@ -56,11 +56,55 @@
         <form id="amostraForm">
             <input type="hidden" id="idAmostra">
             <div class="card">
-                <h3 class="section-title">1. Dados Gerais</h3>
-                <div class="grid-2">
-                    <div class="input-wrapper"><label>Produtor</label><input type="text" id="samp_produtor" required></div>
-                    <div class="input-wrapper"><label>Propriedade</label><input type="text" id="samp_propriedade" required></div>
-                </div>
+<!-- DENTRO DE index.html -->
+
+<h3 class="section-title">1. Dados Gerais</h3>
+<div class="grid-3"> <!-- Mudamos de grid-2 para grid-3 para caber melhor -->
+    <div class="input-wrapper">
+        <label>Produtor</label>
+<!-- DENTRO DO FORMULÁRIO DE AMOSTRAS NO INDEX.HTML -->
+
+<h3 class="section-title">1. Dados Gerais</h3>
+<div class="grid-3">
+    <div class="input-wrapper">
+        <label>Produtor</label>
+        <input type="text" id="samp_produtor" required>
+    </div>
+    <div class="input-wrapper">
+        <label>Propriedade</label>
+        <input type="text" id="samp_propriedade" required>
+    </div>
+    
+    <!-- NOVO CAMPO SOLICITADO -->
+    <div class="input-wrapper">
+        <label>Cultivo Anterior</label>
+        <select id="samp_anterior">
+            <option value="milho" selected>Milho (com palha incorporada)</option>
+            <option value="gramineas">Gramíneas (Braquiária, Milheto, Cana, Pastagens)</option>
+            <option value="leguminosas">Leguminosas (Soja, Feijão, Adubos Verdes)</option>
+            <option value="pousio">Pousio</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid-2 mt-1">
+    <!-- ... O resto dos campos (Cidade, Responsável, etc) continua igual ... -->
+    </div>
+    <div class="input-wrapper">
+        <label>Propriedade</label>
+        <input type="text" id="samp_propriedade" required>
+    </div>
+    <!-- NOVO CAMPO ADICIONADO AQUI -->
+    <div class="input-wrapper">
+        <label>Cultivo Anterior</label>
+        <select id="samp_anterior">
+            <option value="milho" selected>Milho (com palha incorporada)</option>
+            <option value="gramineas">Gramíneas (Braquiária, Cana, Pastagens)</option>
+            <option value="leguminosas">Leguminosas (Soja, Feijão)</option>
+            <option value="pousio">Pousio</option>
+        </select>
+    </div>
+</div>
                 <div class="grid-2 mt-1">
                     <div class="input-wrapper"><label>Município/UF</label><input type="text" id="samp_cidade" required></div>
                     <div class="input-wrapper">
